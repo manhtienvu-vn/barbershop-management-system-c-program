@@ -1,0 +1,10 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define DEFAULT_MENU_STATE 0
+
+#define HAIRCUT_NORMAL_PRICE 80.00
+#define HAIRCUT_COMBO_PRICE 100.00
+#define WAITING_TIME 30
+
+#endif
