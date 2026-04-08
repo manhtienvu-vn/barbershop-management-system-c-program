@@ -12,7 +12,7 @@
 // IMPLEMENTATION: CUSTOMER QUEUE MANAGEMENT
 // ============================================================================
 
-CustomerQueue* CreateQueue() {
+CustomerQueue* LOGIC_CreateQueue() {
     CustomerQueue* queue = (CustomerQueue*)malloc(sizeof(CustomerQueue));
     if (queue == NULL) {
         printf("Error: Cannot allocate memory for the Queue!\n");
@@ -24,7 +24,7 @@ CustomerQueue* CreateQueue() {
     return queue;
 }
 
-void EnqueueCustomer(CustomerQueue* queue, int id, const char* name) {
+void LOGIC_EnqueueCustomer(CustomerQueue* queue, const char* name) {
     if (queue == NULL) return;
 
     CustomerNode* new_node = (CustomerNode*)malloc(sizeof(CustomerNode));
@@ -33,7 +33,6 @@ void EnqueueCustomer(CustomerQueue* queue, int id, const char* name) {
         return;
     }
 
-    new_node->data.id = id;
     new_node->data.name = (char*)malloc(strlen(name) + 1);
     strcpy(new_node->data.name, name);
     new_node->next = NULL;
@@ -48,12 +47,12 @@ void EnqueueCustomer(CustomerQueue* queue, int id, const char* name) {
     queue->count++;
 }
 
-int GetWaitingCount(CustomerQueue* queue) {
+int LOGIC_GetWaitingCount(CustomerQueue* queue) {
     if (queue == NULL) return 0;
     return queue->count;
 }
 
-int CalculateWaitTime(CustomerQueue* queue) {
+int LOGIC_CalculateWaitTime(CustomerQueue* queue) {
     if (queue == NULL) return 0;
     // Each waiting customer takes 30 minutes
     return queue->count * 30;
@@ -63,7 +62,7 @@ int CalculateWaitTime(CustomerQueue* queue) {
 // IMPLEMENTATION: BARBER LINKED LIST MANAGEMENT
 // ============================================================================
 
-BarberNode* AddBarber(BarberNode* head, int id, const char* name) {
+BarberNode* LOGIC_AddBarber(BarberNode* head, int id) {
     BarberNode* new_node = (BarberNode*)malloc(sizeof(BarberNode));
     if (new_node == NULL) {
         printf("Error: Cannot allocate memory for BarberNode!\n");
@@ -71,8 +70,6 @@ BarberNode* AddBarber(BarberNode* head, int id, const char* name) {
     }
 
     new_node->data.id = id;
-    new_node->data.name = (char*)malloc(strlen(name) + 1);
-    strcpy(new_node->data.name, name);
     new_node->data.status = AVAILABLE; // Default status for a new barber is AVAILABLE
     new_node->next = NULL;
 
@@ -90,7 +87,7 @@ BarberNode* AddBarber(BarberNode* head, int id, const char* name) {
     return head;
 }
 
-void SetBarberStatus(BarberNode* head, int id, BarberStatus new_status) {
+void LOGIC_SetBarberStatus(BarberNode* head, int id, BarberStatus new_status) {
     BarberNode* temp = head;
     while (temp != NULL) {
         if (temp->data.id == id) {
@@ -102,7 +99,7 @@ void SetBarberStatus(BarberNode* head, int id, BarberStatus new_status) {
     printf("Barber with ID %d not found.\n", id);
 }
 
-BarberNode* RemoveBarber(BarberNode* head, int id) {
+BarberNode* LOGIC_RemoveBarber(BarberNode* head, int id) {
     if (head == NULL) return NULL;
 
     BarberNode* temp = head;
@@ -111,7 +108,6 @@ BarberNode* RemoveBarber(BarberNode* head, int id) {
     // If the barber to be removed is the head node
     if (temp != NULL && temp->data.id == id) {
         head = temp->next;
-        free(temp->data.name); // Free dynamically allocated string
         free(temp);            // Free the node
         return head;
     }
@@ -130,13 +126,12 @@ BarberNode* RemoveBarber(BarberNode* head, int id) {
 
     // Unlink the node from the list and free memory
     prev->next = temp->next;
-    free(temp->data.name);
     free(temp);
 
     return head;
 }
 
-void DisplayBarbers(BarberNode* head) {
+void LOGIC_DisplayBarbers(BarberNode* head) {
     printf("\n--- BARBER LIST ---\n");
     if (head == NULL) {
         printf("There are currently no barbers available.\n");
@@ -145,9 +140,8 @@ void DisplayBarbers(BarberNode* head) {
 
     BarberNode* temp = head;
     while (temp != NULL) {
-        printf("ID: %d | Name: %-15s | Status: %s\n", 
+        printf("ID: %d | Status: %s\n", 
                temp->data.id, 
-               temp->data.name, 
                (temp->data.status == BUSY) ? "BUSY (Cutting)" : "AVAILABLE (Resting)");
         temp = temp->next;
     }

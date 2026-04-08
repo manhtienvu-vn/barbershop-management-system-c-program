@@ -23,7 +23,6 @@ typedef enum {
  * @brief Customer information.
  */
 typedef struct {
-    int id;
     char* name; // Using char* for dynamic memory allocation instead of static arrays
 } Customer;
 
@@ -49,7 +48,6 @@ typedef struct {
  */
 typedef struct {
     int id;
-    char* name;
     BarberStatus status;
 } Barber;
 
@@ -77,21 +75,21 @@ CustomerQueue* CreateQueue();
  * @param id Customer ID.
  * @param name Customer name.
  */
-void EnqueueCustomer(CustomerQueue* queue, int id, const char* name);
+void LOGIC_EnqueueCustomer(CustomerQueue* queue, const char* name);
 
 /**
  * @brief Checks the number of customers currently waiting on the sofa.
  * @param queue Pointer to the queue.
  * @return int Number of waiting customers.
  */
-int GetWaitingCount(CustomerQueue* queue);
+int LOGIC_GetWaitingCount(CustomerQueue* queue);
 
 /**
  * @brief Calculates the estimated wait time for a newly arrived customer.
  * @param queue Pointer to the queue.
  * @return int Wait time in minutes (assuming 1 customer takes 30 minutes).
  */
-int CalculateWaitTime(CustomerQueue* queue);
+int LOGIC_CalculateWaitTime(CustomerQueue* queue);
 
 // ============================================================================
 // FUNCTION DECLARATIONS: BARBER LINKED LIST MANAGEMENT
@@ -101,10 +99,9 @@ int CalculateWaitTime(CustomerQueue* queue);
  * @brief Adds a new barber to the list.
  * @param head Pointer to the head node of the barber list.
  * @param id Barber ID.
- * @param name Barber name.
  * @return BarberNode* Returns the new head pointer of the list.
  */
-BarberNode* AddBarber(BarberNode* head, int id, const char* name);
+BarberNode* LOGIC_AddBarber(BarberNode* head, int id);
 
 /**
  * @brief Changes the status of a barber (e.g., to BUSY when cutting hair).
@@ -112,7 +109,7 @@ BarberNode* AddBarber(BarberNode* head, int id, const char* name);
  * @param id ID of the barber to update.
  * @param new_status New status (AVAILABLE or BUSY).
  */
-void SetBarberStatus(BarberNode* head, int id, BarberStatus new_status);
+void LOGIC_SetBarberStatus(BarberNode* head, int id, BarberStatus new_status);
 
 /**
  * @brief Removes a barber from the list (when they quit/leave).
@@ -120,12 +117,12 @@ void SetBarberStatus(BarberNode* head, int id, BarberStatus new_status);
  * @param id ID of the barber to remove.
  * @return BarberNode* Returns the new head pointer.
  */
-BarberNode* RemoveBarber(BarberNode* head, int id);
+BarberNode* LOGIC_RemoveBarber(BarberNode* head, int id);
 
 /**
  * @brief Displays the entire list of barbers and their current status.
  * @param head Pointer to the head node.
  */
-void DisplayBarbers(BarberNode* head);
+void LOGIC_DisplayBarbers(BarberNode* head);
 
 #endif // LOGIC_H_
