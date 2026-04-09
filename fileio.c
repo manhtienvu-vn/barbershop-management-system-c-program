@@ -1,281 +1,274 @@
-#include "fileio.h"
+/**
+ * @file logic.c
+ * @brief Implements data structures and operation handlers for the Barbershop.
+ */
 
-extern CustomerQueue* g_customerQueue;
-extern BarberNode* g_barberList;
+#include "logic.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-static void get_current_time_string(char* buffer, int buffer_size){
-    /* Get the number of seconds from 1900 to now*/
-    time_t rawtime;
-    time(&rawtime);
+// ============================================================================
+// GLOBAL STATE (Encapsulated within this module)
+// ============================================================================
 
-    /* Convert seconds to format (Day Month Year) with struct tm*/
-    struct tm *timeinfo;
-    timeinfo = localtime(&rawtime);
+static CustomerQueue* g_customerQueue = NULL;
+static BarberNode* g_barberList = NULL;
 
-    /* Format time value to a string*/
-    strftime(buffer, buffer_size, "%d/%m/%Y %H:%M:%S", timeinfo);
+// ============================================================================
+// CORE DATA STRUCTURE ALGORITHMS (Internal)
+// ============================================================================
+
+/**
+ * @brief Internal function to initialize the queue.
+ */
+static CustomerQueue* CreateQueue() {
+    CustomerQueue* queue = (CustomerQueue*)malloc(sizeof(CustomerQueue));
+    if (queue != NULL) {
+        queue->front = NULL;
+        queue->rear = NULL;
+        queue->count = 0;
+    }
+    return queue;
 }
 
-void IO_SaveCustomerToCheckoutFiles(CustomerNode* node){
-    FILE* file;
-    file = fopen("checkout_history.csv", "r");
-
-    if (file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("checkout_history.csv", "w");
-        if(file == NULL){
-            printf("[ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
-            return;
-        }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Customer ID], [Customer Name], [Service Charge]\n");
-        if(ferrror(file)){
-            printf("[ERROR]: Error writing to CHECKOUT file.\n");
-            return;
-        }
-    }
-    else {
-        file = fopen("checkout_history.csv", "a");
-    }
-
-    char checkout_time[30];
-    get_current_time_string(checkout_time, sizeof(checkout_time));
-
-    fprintf(file, "%d, %s, %f, %s\n", 
-            node->data.id,
-            node->data.name,
-            node->data.service_charge,
-            checkout_time);
-
-    if (ferror(file)){
-        printf("[ERROR]: Error writing to file.\n");
-        return;
-    } 
-    printf("[CHECKOUT] Successfully checkout for Customer: %s.\n", node->data.name);   
+void System_Init() {
+    g_customerQueue = CreateQueue();
+    g_barberList = NULL;
 }
 
-void IO_SaveCustomerToWaitingListFile(CustomerNode* new_node){
-    FILE* file;
-    file = fopen("waiting_list.csv", "r");
+// ============================================================================
+// OPERATION HANDLER IMPLEMENTATIONS
+// ============================================================================
 
-    if (file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("waiting_list.csv", "w");
-        if (file == NULL){
-            printf("[ERROR]: Cannot open WAITING-LIST file. File is currently opened.\n");
-            return;
-        }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Customer ID], [Customer Name]\n");
-        if (ferrror(file)){
-            printf("[ERROR]: Error writing to WAITING-LIST file.\n");
-            return;
-        }
-    }
-    else {
-        /* If file already exists, append new info to it*/
-        file = fopen("waiting_list.csv", "a");
-    }
-
-    fprintf(file, "%d, %s\n", 
-            new_node->data.id,
-            new_node->data.name);
-
-    if(ferror(file)){
-        printf("[ERROR]: Error writing to WAITING-LIST file.\n");
+void OP_HandleAddCustomerWaitingList(void) {
+    if (g_customerQueue == NULL) {
+        printf("[!] Error: System not initialized.\n");
         return;
-    } 
+    }
 
-    printf("[WAITING-LIST] Successfully add to waiting list customer: %s.\n", new_node->data.name);   
+    int id;
+    char nameBuffer[100];
+
+    printf("\n--- ADD CUSTOMER TO WAITING LIST ---\n");
+    printf("Enter Customer ID: ");
+    if (scanf("%d", &id) != 1) return;
+    
+    printf("Enter Customer Name: ");
+    scanf(" %[^\n]", nameBuffer); // Read string with spaces
+
+    CustomerNode* new_node = (CustomerNode*)malloc(sizeof(CustomerNode));
+    if (new_node == NULL) {
+        printf("[!] Memory allocation failed.\n");
+        return;
+    }
+
+    new_node->data.id = id;
+    new_node->data.name = (char*)malloc(strlen(nameBuffer) + 1);
+    strcpy(new_node->data.name, nameBuffer);
+    new_node->next = NULL;
+
+    if (g_customerQueue->rear == NULL) {
+        g_customerQueue->front = new_node;
+        g_customerQueue->rear = new_node;
+    } else {
+        g_customerQueue->rear->next = new_node;
+        g_customerQueue->rear = new_node;
+    }
+    g_customerQueue->count++;
+
+    int waitTime = (g_customerQueue->count - 1) * 30;
+    printf("[+] Customer '%s' added to queue. Estimated wait time: %d minutes.\n", nameBuffer, waitTime);
 }
 
-
-void IO_RemoveCustomerFromWaitingListFile(CustomerNode* node){
-    /* Method: Create a new file and copy all customer's info
-    from the waiting_list.csv file, except to the to-be-removed customer*/
-    FILE* file;
-    if(g_customerQueue == NULL){
-        printf("[ERROR] Customer waiting list is empty.\n");
+void OP_HandleRemoveCustomerWaitingList(void) {
+    if (g_customerQueue == NULL || g_customerQueue->front == NULL) {
+        printf("[!] The waiting queue is currently empty.\n");
         return;
     }
 
-    file = fopen("waiting_list.csv", "w");
-    if(file == NULL){
-        printf("[ERROR]: Cannot open WAITING-LIST file. File is currently opened.\n");
+    int id;
+    printf("\n--- REMOVE CUSTOMER FROM QUEUE (LEAVING EARLY) ---\n");
+    printf("Enter Customer ID to remove: ");
+    if (scanf("%d", &id) != 1) return;
+
+    CustomerNode* current = g_customerQueue->front;
+    CustomerNode* prev = NULL;
+
+    while (current != NULL && current->data.id != id) {
+        prev = current;
+        current = current->next;
+    }
+
+    if (current == NULL) {
+        printf("[!] Customer ID %d not found in the queue.\n", id);
         return;
     }
-    fprintf(file, "[Customer ID], [Customer Name]\n");
 
-    CustomerNode *temp = g_customerQueue;
-    while(temp != NULL){
-        if(strcmp(node->data.name, temp->data.name) && (temp->data.id == node->data.id)){
-            /* Skip this barber*/
+    // Node to delete is the head
+    if (prev == NULL) {
+        g_customerQueue->front = current->next;
+    } else {
+        prev->next = current->next;
+    }
+
+    // Node to delete is the tail
+    if (current == g_customerQueue->rear) {
+        g_customerQueue->rear = prev;
+    }
+
+    printf("[-] Customer '%s' removed from the queue.\n", current->data.name);
+    free(current->data.name);
+    free(current);
+    g_customerQueue->count--;
+}
+
+void OP_HandleCustomerCheckout(void) {
+    printf("\n--- CUSTOMER CHECKOUT ---\n");
+    int barberId;
+    printf("Enter the ID of the Barber who finished the cut: ");
+    if (scanf("%d", &barberId) != 1) return;
+
+    BarberNode* current = g_barberList;
+    while (current != NULL) {
+        if (current->data.id == barberId) {
+            current->data.status = AVAILABLE;
+            printf("[+] Checkout successful. Barber '%s' is now AVAILABLE.\n", current->data.name);
+            return;
+        }
+        current = current->next;
+    }
+    printf("[!] Barber ID %d not found.\n", barberId);
+}
+
+void OP_HandleAddBarber(void) {
+    int id;
+    char nameBuffer[100];
+
+    printf("\n--- ADD NEW BARBER ---\n");
+    printf("Enter Barber ID: ");
+    if (scanf("%d", &id) != 1) return;
+
+    printf("Enter Barber Name: ");
+    scanf(" %[^\n]", nameBuffer);
+
+    BarberNode* new_node = (BarberNode*)malloc(sizeof(BarberNode));
+    if (new_node == NULL) {
+        printf("[!] Memory allocation failed.\n");
+        return;
+    }
+
+    new_node->data.id = id;
+    new_node->data.name = (char*)malloc(strlen(nameBuffer) + 1);
+    strcpy(new_node->data.name, nameBuffer);
+    new_node->data.status = AVAILABLE; 
+    new_node->next = NULL;
+
+    if (g_barberList == NULL) {
+        g_barberList = new_node;
+    } else {
+        BarberNode* temp = g_barberList;
+        while (temp->next != NULL) {
             temp = temp->next;
         }
-        else{
-            fprintf(file, "%d, %s, %d\n", 
-            temp->data.id,
-            temp->data.name,
-            temp->data.status);
-
-            if(ferror(file)){
-                printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-                return;
-            } 
-        }
+        temp->next = new_node;
     }
+    printf("[+] Barber '%s' added successfully.\n", nameBuffer);
 }
 
-void IO_SaveCustomerToServingListFile(CustomerNode* node){
-    FILE* file;
-    file = fopen("serving_list.csv", "a");
+void OP_HandleUpdateBarberStatus(void) {
+    int id, statusInput;
+    printf("\n--- UPDATE BARBER STATUS ---\n");
+    printf("Enter Barber ID: ");
+    if (scanf("%d", &id) != 1) return;
 
-    if(file == NULL){
-        printf("[ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
-        return;
-    }
-    
-    fseek(file, 0, SEEK_END);
-    if (ftell(file) == 0){
-        /* If the file is empty, create Table Header */
-        fprintf(file, "[Customer ID], [Customer Name], [Assigned Barber ID]\n");
-    }
+    printf("Select New Status (0 = AVAILABLE, 1 = BUSY): ");
+    if (scanf("%d", &statusInput) != 1) return;
 
-    char start_time[30];
-    get_current_time_string(start_time, sizeof(start_time));
-
-    fprintf(file, "%d, %s, %d, %s\n", 
-            node->data.id,
-            node->data.name,
-            node->data.assigned_barber_id,
-            start_time);
-
-    if (ferror(file)){
-        printf("[ERROR]: Error writing to file.\n");
-        return;
-    }
-    
-    fclose(file);
-    printf("[SERVICE] Start service for Customer: %s.\n", node->data.name);   
-}
-
-
-void IO_SaveBarberToListFile(BarberNode* new_node){
-    FILE* file;
-    file = fopen("barber_list.csv", "r");
-
-    if(file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("barber_list.csv", "w");
-        if(file == NULL){
-            printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+    BarberNode* current = g_barberList;
+    while (current != NULL) {
+        if (current->data.id == id) {
+            current->data.status = (statusInput == 1) ? BUSY : AVAILABLE;
+            printf("[+] Status updated successfully for Barber '%s'.\n", current->data.name);
             return;
         }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
-        if(ferrror(file)){
-            printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-            return;
-        }
+        current = current->next;
     }
-    else{
-        /* If file already exists, append new info to it*/
-        file = fopen("barber_list.csv", "a");
-    }
-
-    fprintf(file, "%d, %s, %d\n", 
-        new_node->data.id,
-        new_node->data.name,
-        new_node->data.status);
-
-    if(ferror(file)){
-        printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-        return;
-    } 
-    printf("[BARBER-LIST] Successfully add to barber list: %s.\n", new_node->data.name);  
+    printf("[!] Barber ID %d not found.\n", id);
 }
 
-
-void IO_RemoveBarberFromListFile(BarberNode* node){
-    /* Method: Create a new file and copy all barber's info
-    from the barber_list.csv file, except to the to-be-removed barber*/
-    FILE* file;
-    if(g_barberList == NULL){
-        printf("[ERROR] Barber list is empty.\n");
+void OP_HandleRemoveBarber(void) {
+    if (g_barberList == NULL) {
+        printf("[!] Barber list is empty.\n");
         return;
     }
 
-    file = fopen("barber_list.csv", "w");
-    if(file == NULL){
-        printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+    int id;
+    printf("\n--- REMOVE BARBER ---\n");
+    printf("Enter Barber ID to remove: ");
+    if (scanf("%d", &id) != 1) return;
+
+    BarberNode* current = g_barberList;
+    BarberNode* prev = NULL;
+
+    // Head node deletion
+    if (current != NULL && current->data.id == id) {
+        g_barberList = current->next;
+        printf("[-] Barber '%s' removed from system.\n", current->data.name);
+        free(current->data.name);
+        free(current);
         return;
     }
-    fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
 
-    BarberNode *temp = g_barberList;
-    while(temp != NULL){
-        if(strcmp(temp->data.name, node->data.name) == 0 && (temp->data.id == node->data.id)){
-            /* Skip this barber*/
-            temp = temp->next;
-        }
-        else{
-            fprintf(file, "%d, %s, %d\n", 
-            temp->data.id,
-            temp->data.name,
-            temp->data.status);
-
-            if(ferror(file)){
-                printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-                return;
-            } 
-        }
+    // Search
+    while (current != NULL && current->data.id != id) {
+        prev = current;
+        current = current->next;
     }
+
+    if (current == NULL) {
+        printf("[!] Barber ID %d not found.\n", id);
+        return;
+    }
+
+    prev->next = current->next;
+    printf("[-] Barber '%s' removed from system.\n", current->data.name);
+    free(current->data.name);
+    free(current);
 }
 
-void IO_UpdateBarberStatusToListFile(BarberNode* node, BarberStatus status){
-    /* Method: Create a new file and copy all barber's info
-    from the barber_list.csv file, update status of the to-be-updated barber*/
-    FILE* file;
-    if(g_barberList == NULL){
-        printf("[ERROR] Barber list is empty.\n");
+// ============================================================================
+// UTILITY FUNCTIONS (For testing & UI viewing)
+// ============================================================================
+
+void DisplayAllBarbers() {
+    printf("\n--- CURRENT BARBER ROSTER ---\n");
+    if (g_barberList == NULL) {
+        printf("No barbers in the system right now.\n");
         return;
     }
 
-    file = fopen("barber_list.csv", "w");
-    if(file == NULL){
-        printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
-        return;
-    }
-    fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
-
-    BarberNode *temp = g_barberList;
-    int check = 0;
-
-    while(temp != NULL){
-        if(strcmp(temp->data.name, node->data.name) == 0 && (temp->data.id == node->data.id)){
-            /* Update this barber's status*/
-            temp->data.status = status;
-            check = 1;
-            printf("[BARBER-LIST] Successfully update barber's status.\n");
-        }
-
-        fprintf(file, "%d, %s, %d\n", 
-        temp->data.id,
-        temp->data.name,
-        temp->data.status);
+    BarberNode* temp = g_barberList;
+    while (temp != NULL) {
+        printf("ID: %-4d | Name: %-15s | Status: %s\n", 
+               temp->data.id, 
+               temp->data.name, 
+               (temp->data.status == BUSY) ? "BUSY (Cutting)" : "AVAILABLE");
         temp = temp->next;
-
-        if(ferror(file)){
-            printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-            return;
-        }
-    }
-
-    if (check == 0){
-        printf("[ERROR] To-be-updated Barber does not exist.\n");
     }
 }
 
+void DisplayWaitingQueue() {
+    printf("\n--- WAITING SOFA QUEUE (%d waiting) ---\n", g_customerQueue ? g_customerQueue->count : 0);
+    if (g_customerQueue == NULL || g_customerQueue->front == NULL) {
+        printf("The sofa is empty.\n");
+        return;
+    }
 
-
-
+    CustomerNode* temp = g_customerQueue->front;
+    int pos = 1;
+    while (temp != NULL) {
+        printf("%d. ID: %-4d | Name: %s\n", pos++, temp->data.id, temp->data.name);
+        temp = temp->next;
+    }
+}

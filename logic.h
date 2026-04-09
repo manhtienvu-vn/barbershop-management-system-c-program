@@ -1,8 +1,3 @@
-/**
- * @file logic.h
- * @brief Header file containing data structures, core algorithms, and operation handlers.
- * @note Strictly adheres to Google C++ Style Guide and dynamic memory allocation.
- */
 
 #ifndef LOGIC_H_
 #define LOGIC_H_
@@ -24,8 +19,7 @@ typedef enum {
  */
 typedef struct {
     int id;
-    char* name;
-    float service_charge; 
+    char* name; 
     int assigned_barber_id;
 } Customer;
 
@@ -71,12 +65,14 @@ typedef struct BarberNode {
  * @brief Initializes the global lists and queues for the system.
  * Must be called once at the start of main().
  */
-void LOGIC_SystemInit();
+void System_Init();
 
 // ============================================================================
+// TARGET OPERATION HANDLERS (CLI Wrappers)
+// ============================================================================
+
 void LOGIC_HandleAddCustomerWaitingList(void);
 void LOGIC_HandleRemoveCustomerWaitingList(void);
-void LOGIC_HandleStartCustomerService(void);
 void LOGIC_HandleCustomerCheckout(void);
 void LOGIC_HandleAddBarber(void);
 void LOGIC_HandleUpdateBarberStatus(void);
