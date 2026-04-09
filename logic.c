@@ -9,7 +9,7 @@
 #include <string.h>
 
 // ============================================================================
-// GLOBAL STATE (Encapsulated within this module)
+// GLOBAL STATE
 // ============================================================================
 
 CustomerQueue* g_customerQueue = NULL;
@@ -17,7 +17,7 @@ CustomerNode* g_servingList = NULL;
 BarberNode* g_barberList = NULL;
 
 // ============================================================================
-// CORE DATA STRUCTURE ALGORITHMS (Internal)
+// CORE DATA STRUCTURE ALGORITHMS 
 // ============================================================================
 
 /**
@@ -58,7 +58,7 @@ void LOGIC_HandleAddCustomerWaitingList(void) {
     if (scanf("%d", &id) != 1) return;
 
     printf("[ADD CUSTOMER TO WAITING-LIST]: Enter Customer Name: ");
-    scanf(" %[^\n]", nameBuffer); // Read string with spaces
+    scanf(" %s[^\n]", nameBuffer); // Read string with spaces
 =
     CustomerNode* new_node = (CustomerNode*)malloc(sizeof(CustomerNode));
     if (new_node == NULL) {
@@ -121,7 +121,7 @@ void LOGIC_HandleRemoveCustomerWaitingList(void) {
     }
 
     printf("[-] Customer '%s' removed from the queue.\n", current->data.name);
-    free(current->data.name);
+    // free(current->data.name);
     free(current);
     g_customerQueue->count--;
 }
@@ -242,7 +242,7 @@ void LOGIC_HandleRemoveBarber(void) {
     if (current != NULL && current->data.id == id) {
         g_barberList = current->next;
         printf("[-] Barber '%s' removed from system.\n", current->data.name);
-        free(current->data.name);
+        // free(current->data.name);
         free(current);
         return;
     }
@@ -260,7 +260,7 @@ void LOGIC_HandleRemoveBarber(void) {
 
     prev->next = current->next;
     printf("[-] Barber '%s' removed from system.\n", current->data.name);
-    free(current->data.name);
+    // free(current->data.name);
     free(current);
 }
 

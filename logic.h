@@ -1,18 +1,10 @@
-
 #ifndef LOGIC_H_
 #define LOGIC_H_
 
+#include "common.h"
 // ============================================================================
 // DATA DEFINITIONS (STRUCTS & ENUMS)
 // ============================================================================
-
-/**
- * @brief Working status of a barber.
- */
-typedef enum {
-    AVAILABLE = 0,
-    BUSY = 1
-} BarberStatus;
 
 /**
  * @brief Customer information.
@@ -72,7 +64,8 @@ void System_Init();
 // ============================================================================
 
 void LOGIC_HandleAddCustomerWaitingList(void);
-void LOGIC_HandleRemoveCustomerWaitingList(void);
+void LOGIC_HandleStartCustomerService(void);
+void LOGIC_HandleCustomerStartService(void);
 void LOGIC_HandleCustomerCheckout(void);
 void LOGIC_HandleAddBarber(void);
 void LOGIC_HandleUpdateBarberStatus(void);

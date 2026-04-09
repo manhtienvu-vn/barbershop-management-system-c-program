@@ -8,9 +8,11 @@
 
 void OP_HandleAddCustomerWaitingList();
 void OP_HandleRemoveCustomerWaitingList();
+void OP_HandleStartCustomerService();
 void OP_HandleCustomerCheckout();
 void OP_HandleAddBarber();
 void OP_HandleUpdateBarberStatus();
-void OP_HandleRemoveBarber()
+void OP_HandleRemoveBarber();
+void OP_HandleExit();
 
 #endif
