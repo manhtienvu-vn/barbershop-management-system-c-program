@@ -1,7 +1,7 @@
 /**
  * @file logic.h
- * @brief Header file containing data structures and function declarations for the Barbershop system.
- * @note Strictly adheres to Google C++ Style Guide and dynamic memory allocation requirements.
+ * @brief Header file containing data structures, core algorithms, and operation handlers.
+ * @note Strictly adheres to Google C++ Style Guide and dynamic memory allocation.
  */
 
 #ifndef LOGIC_H_
@@ -23,7 +23,10 @@ typedef enum {
  * @brief Customer information.
  */
 typedef struct {
-    char* name; // Using char* for dynamic memory allocation instead of static arrays
+    int id;
+    char* name;
+    float service_charge; 
+    int assigned_barber_id;
 } Customer;
 
 /**
@@ -38,9 +41,9 @@ typedef struct CustomerNode {
  * @brief Queue structure to manage waiting customers on the sofa.
  */
 typedef struct {
-    CustomerNode* front; // Front of the queue (next person to be served)
-    CustomerNode* rear;  // Rear of the queue (newly arrived person)
-    int count;           // Number of waiting customers
+    CustomerNode* front; 
+    CustomerNode* rear;  
+    int count;           
 } CustomerQueue;
 
 /**
@@ -48,6 +51,7 @@ typedef struct {
  */
 typedef struct {
     int id;
+    char* name;
     BarberStatus status;
 } Barber;
 
@@ -60,69 +64,36 @@ typedef struct BarberNode {
 } BarberNode;
 
 // ============================================================================
-// FUNCTION DECLARATIONS: CUSTOMER QUEUE MANAGEMENT
+// SYSTEM INITIALIZATION
 // ============================================================================
 
 /**
- * @brief Initializes the customer queue.
- * @return CustomerQueue* Pointer to the newly allocated queue.
+ * @brief Initializes the global lists and queues for the system.
+ * Must be called once at the start of main().
  */
-CustomerQueue* CreateQueue();
-
-/**
- * @brief Adds a new customer to the queue (Enqueue).
- * @param queue Pointer to the queue.
- * @param id Customer ID.
- * @param name Customer name.
- */
-void LOGIC_EnqueueCustomer(CustomerQueue* queue, const char* name);
-
-/**
- * @brief Checks the number of customers currently waiting on the sofa.
- * @param queue Pointer to the queue.
- * @return int Number of waiting customers.
- */
-int LOGIC_GetWaitingCount(CustomerQueue* queue);
-
-/**
- * @brief Calculates the estimated wait time for a newly arrived customer.
- * @param queue Pointer to the queue.
- * @return int Wait time in minutes (assuming 1 customer takes 30 minutes).
- */
-int LOGIC_CalculateWaitTime(CustomerQueue* queue);
+void LOGIC_SystemInit();
 
 // ============================================================================
-// FUNCTION DECLARATIONS: BARBER LINKED LIST MANAGEMENT
+void LOGIC_HandleAddCustomerWaitingList(void);
+void LOGIC_HandleRemoveCustomerWaitingList(void);
+void LOGIC_HandleStartCustomerService(void);
+void LOGIC_HandleCustomerCheckout(void);
+void LOGIC_HandleAddBarber(void);
+void LOGIC_HandleUpdateBarberStatus(void);
+void LOGIC_HandleRemoveBarber(void);
+
+// ============================================================================
+// DISPLAY & UTILITY FUNCTIONS
 // ============================================================================
 
 /**
- * @brief Adds a new barber to the list.
- * @param head Pointer to the head node of the barber list.
- * @param id Barber ID.
- * @return BarberNode* Returns the new head pointer of the list.
+ * @brief Displays the current status of all barbers.
  */
-BarberNode* LOGIC_AddBarber(BarberNode* head, int id);
+void LOGIC_DisplayAllBarbers();
 
 /**
- * @brief Changes the status of a barber (e.g., to BUSY when cutting hair).
- * @param head Pointer to the head node.
- * @param id ID of the barber to update.
- * @param new_status New status (AVAILABLE or BUSY).
+ * @brief Displays the customers currently waiting in the queue.
  */
-void LOGIC_SetBarberStatus(BarberNode* head, int id, BarberStatus new_status);
+void LOGIC_DisplayWaitingQueue();
 
-/**
- * @brief Removes a barber from the list (when they quit/leave).
- * @param head Pointer to the head node.
- * @param id ID of the barber to remove.
- * @return BarberNode* Returns the new head pointer.
- */
-BarberNode* LOGIC_RemoveBarber(BarberNode* head, int id);
-
-/**
- * @brief Displays the entire list of barbers and their current status.
- * @param head Pointer to the head node.
- */
-void LOGIC_DisplayBarbers(BarberNode* head);
-
-#endif // LOGIC_H_
+#endif // LOGIC_H_  
