@@ -4,9 +4,6 @@
  */
 
 #include "logic.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // ============================================================================
 // GLOBAL STATE
@@ -44,31 +41,21 @@ void LOGIC_SystemInit() {
 // OPERATION HANDLER IMPLEMENTATIONS
 // ============================================================================
 
-void LOGIC_HandleAddCustomerWaitingList(void) {
+void LOGIC_HandleAddCustomerWaitingList(Customer customer) {
     if (g_customerQueue == NULL) {
-        printf("[ERROR]: System not initialized.\n");
+        printf("[LOGIC ERROR]: System not initialized.\n");
         return;
     }
 
-    int id;
-    char nameBuffer[100];
-
-    printf("\n--- ADD CUSTOMER TO WAITING LIST ---\n");
-    printf("[ADD CUSTOMER TO WAITING-LIST]: Enter Customer ID: ");
-    if (scanf("%d", &id) != 1) return;
-
-    printf("[ADD CUSTOMER TO WAITING-LIST]: Enter Customer Name: ");
-    scanf(" %s[^\n]", nameBuffer); // Read string with spaces
-=
     CustomerNode* new_node = (CustomerNode*)malloc(sizeof(CustomerNode));
     if (new_node == NULL) {
-        printf("[ERROR] Memory allocation failed.\n");
+        printf("[LOGIC ERROR] Memory allocation failed.\n");
         return;
     }
 
-    new_node->data.id = id;
-    new_node->data.name = (char*)malloc(strlen(nameBuffer) + 1);
-    strcpy(new_node->data.name, nameBuffer);
+    new_node->data.id = customer.id;
+    new_node->data.name = (char*)malloc(strlen(customer.name) + 1);
+    strcpy(new_node->data.name, customer.name);
     new_node->next = NULL;
 
     if (g_customerQueue->rear == NULL) {
@@ -80,31 +67,26 @@ void LOGIC_HandleAddCustomerWaitingList(void) {
     }
     g_customerQueue->count++;
 
-    int waitTime = (g_customerQueue->count - 1) * 30;
-    printf("[+] Customer '%s' added to queue. Estimated wait time: %d minutes.\n", nameBuffer, waitTime);
+    int waitTime = (g_customerQueue->count - 1) * WAITING_TIME;
+    printf("[LOGIC SUCCESS] Customer '%s' added to queue. Estimated wait time: %d minutes.\n", customer.name, waitTime);
 }
 
-void LOGIC_HandleRemoveCustomerWaitingList(void) {
+void LOGIC_HandleRemoveCustomerWaitingList(Customer customer) {
     if (g_customerQueue == NULL || g_customerQueue->front == NULL) {
-        printf("[!] The waiting queue is currently empty.\n");
+        printf("[LOGIC ERROR] The waiting queue is currently empty.\n");
         return;
     }
-
-    int id;
-    printf("\n--- REMOVE CUSTOMER FROM QUEUE (LEAVING EARLY) ---\n");
-    printf("[REMOVE CUSTOMER FROM WAITING-LIST] Enter Customer ID to remove: ");
-    if (scanf("%d", &id) != 1) return;
 
     CustomerNode* current = g_customerQueue->front;
     CustomerNode* prev = NULL;
 
-    while (current != NULL && current->data.id != id) {
+    while (current != NULL && current->data.id != customer.id) {
         prev = current;
         current = current->next;
     }
 
     if (current == NULL) {
-        printf("[!] Customer ID %d not found in the queue.\n", id);
+        printf("[LOGIC ERROR] Customer ID %d not found in the queue.\n", customer.id);
         return;
     }
 
@@ -121,16 +103,31 @@ void LOGIC_HandleRemoveCustomerWaitingList(void) {
     }
 
     printf("[-] Customer '%s' removed from the queue.\n", current->data.name);
-    // free(current->data.name);
+    free(current->data.name);
     free(current);
     g_customerQueue->count--;
 }
 
 void LOGIC_HandleStartCustomerService(void){
-    printf("\n--- CUSTOMER SERVICE STARTS ---\n")
     if (g_customerQueue->count > 0){
+        BarberNode* temp = g_barberList;
+        while (temp != NULL && temp->data.status != AVAILABLE) {
+            temp = temp->next;
+        }
+
+        /* If all barbers are BUSY */
+        if (temp == NULL){
+            printf("[LOGIC ERROR]: All barbers are BUSY. Please wait until a barber finishes.\n");
+            return;
+        }
+
+        /* If found an AVAILABLE barber*/
         /* Derive the front node (First Customer in the Queue) to serving linked-list*/
         CustomerNode* serving_node = g_customerQueue->front;
+
+        /* Insert this new node to the front of the singly linked list 'g_servingList' */
+        serving_node->next = g_servingList;
+        g_servingList = serving_node;
 
         /* Update new front node of the waiting queue*/
         g_customerQueue->front = g_customerQueue->front->next;
@@ -142,52 +139,61 @@ void LOGIC_HandleStartCustomerService(void){
             g_customerQueue->rear = NULL;
         }
 
-        printf("[SERVICE]: Customer %s has moved to barber chair.\n",
-                serving_node->data.name);
+        /* Assigned the AVAILABLE barber to this customer*/
+        serving_node->data.assigned_barber_id = temp->data.id;
+        temp->data.status = BUSY;
+
+        printf("[LOGIC SUCCESS]: Customer %s, ID: '%d' is now being served by Barber %s, ID: '%d'.\n",
+                serving_node->data.name, serving_node->data.id, temp->data.name, temp->data.id);
     }
     else{
-        printf("[ERROR]: No customer is waiting.\n");
+        printf("[LOGIC ERROR]: No customer is waiting.\n");
     }
 }
 
-void LOGIC_HandleCustomerCheckout(void) {
-    printf("\n--- CUSTOMER CHECKOUT ---\n");
-    int barberId;
-    printf("[CHECKOUT]: Enter the ID of the Barber who finished the cut: ");
-    if (scanf("%d", &barberId) != 1) return;
+void LOGIC_HandleCustomerCheckout(Customer customer) {
+    CustomerNode* current = g_servingList;
+    CustomerNode* prev = NULL;
 
-    BarberNode* current = g_barberList;
-    while (current != NULL) {
-        if (current->data.id == barberId) {
-            current->data.status = AVAILABLE;
-            printf("[+] Checkout successful. Barber '%s' is now AVAILABLE.\n", current->data.name);
-            return;
-        }
+    while (current != NULL && current->data.id != customer.id) {
+        prev = current;
         current = current->next;
     }
-    printf("[!] Barber ID %d not found.\n", barberId);
-}
 
-void LOGIC_HandleAddBarber(void) {
-    int id;
-    char nameBuffer[100];
-
-    printf("\n--- ADD NEW BARBER ---\n");
-    printf("Enter Barber ID: ");
-    if (scanf("%d", &id) != 1) return;
-
-    printf("Enter Barber Name: ");
-    scanf(" %[^\n]", nameBuffer);
-
-    BarberNode* new_node = (BarberNode*)malloc(sizeof(BarberNode));
-    if (new_node == NULL) {
-        printf("[!] Memory allocation failed.\n");
+    if (current == NULL) {
+        printf("[LOGIC ERROR] Customer ID %d not found in serving list.\n", customer.id);
         return;
     }
 
-    new_node->data.id = id;
-    new_node->data.name = (char*)malloc(strlen(nameBuffer) + 1);
-    strcpy(new_node->data.name, nameBuffer);
+    /* If node to delete is the head*/
+    if(prev == NULL){
+        g_servingList = current->next;
+    }
+    else {
+        prev->next = current->next;
+    }
+
+    /* Update new status for the assigned barber of this customer to be AVAILABLE */
+    Barber barber;
+    barber.id = customer.assigned_barber_id;
+    LOGIC_HandleUpdateBarberStatus(barber, AVAILABLE);
+    
+    printf("[LOGIC SUCCESS] Checked out Customer %s, ID: %d.\n", customer.name, customer.id);
+
+    free(current->data.name);
+    free(current);
+}
+
+void LOGIC_HandleAddBarber(Barber barber) {
+    BarberNode* new_node = (BarberNode*)malloc(sizeof(BarberNode));
+    if (new_node == NULL) {
+        printf("[LOGIC ERROR] Memory allocation failed.\n");
+        return;
+    }
+
+    new_node->data.id = barber.id;
+    new_node->data.name = (char*)malloc(strlen(barber.name) + 1);
+    strcpy(new_node->data.name, barber.name);
     new_node->data.status = AVAILABLE; 
     new_node->next = NULL;
 
@@ -200,67 +206,54 @@ void LOGIC_HandleAddBarber(void) {
         }
         temp->next = new_node;
     }
-    printf("[+] Barber '%s' added successfully.\n", nameBuffer);
+    printf("[LOGIC SUCCESS] Barber '%s' added successfully.\n", barber.name);
 }
 
-void LOGIC_HandleUpdateBarberStatus(void) {
-    int id, statusInput;
-    printf("\n--- UPDATE BARBER STATUS ---\n");
-    printf("Enter Barber ID: ");
-    if (scanf("%d", &id) != 1) return;
-
-    printf("Select New Status (0 = AVAILABLE, 1 = BUSY): ");
-    if (scanf("%d", &statusInput) != 1) return;
-
+void LOGIC_HandleUpdateBarberStatus(Barber barber, BarberStatus status) {
     BarberNode* current = g_barberList;
     while (current != NULL) {
-        if (current->data.id == id) {
-            current->data.status = (statusInput == 1) ? BUSY : AVAILABLE;
-            printf("[+] Status updated successfully for Barber '%s'.\n", current->data.name);
+        if (current->data.id == barber.id) {
+            current->data.status = status;
+            printf("[LOGIC SUCCESS] Status updated successfully for Barber '%s', ID: '%d'.\n", current->data.name, current->data.id);
             return;
         }
         current = current->next;
     }
-    printf("[!] Barber ID %d not found.\n", id);
+    printf("[LOGIC ERROR] Barber ID %d not found.\n", barber.id);
 }
 
-void LOGIC_HandleRemoveBarber(void) {
+void LOGIC_HandleRemoveBarber(Barber barber) {
     if (g_barberList == NULL) {
-        printf("[!] Barber list is empty.\n");
+        printf("[LOGIC ERROR] Barber list is empty.\n");
         return;
     }
-
-    int id;
-    printf("\n--- REMOVE BARBER ---\n");
-    printf("Enter Barber ID to remove: ");
-    if (scanf("%d", &id) != 1) return;
 
     BarberNode* current = g_barberList;
     BarberNode* prev = NULL;
 
     // Head node deletion
-    if (current != NULL && current->data.id == id) {
+    if (current != NULL && current->data.id == barber.id) {
         g_barberList = current->next;
-        printf("[-] Barber '%s' removed from system.\n", current->data.name);
-        // free(current->data.name);
+        printf("[LOGIC SUCCESS] Barber '%s', ID: '%d' removed from system.\n", current->data.name, current->data.id);
+        free(current->data.name);
         free(current);
         return;
     }
 
     // Search
-    while (current != NULL && current->data.id != id) {
+    while (current != NULL && current->data.id != barber.id) {
         prev = current;
         current = current->next;
     }
 
     if (current == NULL) {
-        printf("[!] Barber ID %d not found.\n", id);
+        printf("[LOGIC ERROR] Barber ID %d not found.\n", barber.id);
         return;
     }
 
     prev->next = current->next;
-    printf("[-] Barber '%s' removed from system.\n", current->data.name);
-    // free(current->data.name);
+    printf("[LOGIC SUCCESS] Barber '%s', ID: '%d' removed from system.\n", current->data.name, current->data.id);
+    free(current->data.name);
     free(current);
 }
 

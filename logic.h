@@ -2,6 +2,10 @@
 #define LOGIC_H_
 
 #include "common.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+ 
 // ============================================================================
 // DATA DEFINITIONS (STRUCTS & ENUMS)
 // ============================================================================

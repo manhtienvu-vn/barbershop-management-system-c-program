@@ -34,6 +34,7 @@ int UI_GetInputCommand(int MIN_RANGE, int MAX_RANGE){
 }
 
 void UI_ShowCustomerPage(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|==================*CUSTOMER MANAGEMENT PAGE*=====================|\n");
@@ -51,15 +52,48 @@ Customer UI_HandleAddCustomerWaitingList(){
 
     UI_LogSuccess();
     
-    printf("Type the customer name to ADD (EXACTLY Upper/Lowercase): ");
+    printf("\n--- ADD CUSTOMER TO WAITING LIST ---\n");
+    printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
     fgets(customer.name, sizeof(customer.name), stdin);
 
-    printf("Type the customer ID to ADD (Integer): ");
+    printf("[UI] Enter customer ID (Integer): ");
     scanf("%d", &customer.id);
     
     return customer;
 }
 
+Customer UI_HandleRemoveCustomerWaitingList(){
+    Customer customer;
+    UI_LogSuccess();
+    
+    printf("\n--- REMOVE CUSTOMER FROM WAITING LIST ---\n");
+    printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
+    fgets(customer.name, sizeof(customer.name), stdin);
+
+    printf("[UI] Enter customer ID (Integer): ");
+    scanf("%d", &customer.id);
+    
+    return customer;
+}
+
+void UI_HandleStartCustomerService(void){
+    UI_LogSuccess();
+    printf("\n--- START CUSTOMER SERVICE (MOVE FROM WAITING TO SERVING LIST) ---\n");
+}
+
+Customer UI_HandleCustomerCheckout(){
+    Customer customer;
+    UI_LogSuccess();
+    
+    printf("\n--- CUSTOMER CHECKOUT ---\n");
+    printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
+    fgets(customer.name, sizeof(customer.name), stdin);
+
+    printf("[UI] Enter customer ID (Integer): ");
+    scanf("%d", &customer.id);
+    
+    return customer;
+}
 
 void UI_HandleCustomerPage(){
     UI_ShowUpdateCustomer();
@@ -70,6 +104,7 @@ void UI_HandleCustomerPage(){
 
     switch(command){
         case ADD_CUSTOMER_WAITING_LIST:
+            UI_HandleAddCustomerWaitingList();
             break;
 
         case REMOVE_CUSTOMER_WAITING_LIST:
@@ -84,6 +119,7 @@ void UI_HandleCustomerPage(){
 }
 
 void UI_ShowBarberPage(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|================== *BARBER MANAGEMENT PAGE* =====================|\n");
@@ -152,30 +188,24 @@ void UI_HandleBarberPage(){
     }
 }
 
-Customer UI_HandleCustomerCheckout(){
-    Customer customer;
 
-    UI_LogSuccess();
-    
-    printf("Type the customer name to CHECKOUT (EXACTLY Upper/Lowercase): ");
-    fgets(customer.name, sizeof(customer.name), stdin);
-
-    return customer;
-}
 
 void UI_HandleViewCustomerWaitingList(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|================ *CUSTOMER WAITING LIST PAGE* ===================|\n");
 }
 
 void UI_HandleViewCustomerServingList(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|================ *CUSTOMER SERVING LIST PAGE* ===================|\n");
 }
 
 void UI_HandleViewCheckoutHistory(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|====================== *CHECK-OUT PAGE* =========================|\n");
@@ -188,6 +218,7 @@ void UI_HandleExit(){
 }
 
 void UI_ShowMenu(){
+    UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|=================================================================|\n");
