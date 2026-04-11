@@ -2,8 +2,8 @@
 #define OPERATION_H
 
 #include "logic.h"
-#include "database.h"
-#include "config.h"
+#include "fileio.h"
+#include "common.h"
 #include "ui.h"
 
 void OP_HandleAddCustomerWaitingList();

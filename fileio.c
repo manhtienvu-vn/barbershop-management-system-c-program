@@ -16,81 +16,36 @@ static void get_current_time_string(char* buffer, int buffer_size){
     strftime(buffer, buffer_size, "%d/%m/%Y %H:%M:%S", timeinfo);
 }
 
-void IO_SaveCustomerToCheckoutFiles(CustomerNode* node){
+void IO_SaveCustomerToWaitingListFile(Customer customer){
     FILE* file;
-    file = fopen("checkout_history.csv", "r");
+    file = fopen("waiting_list.csv", "a");
 
-    if (file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("checkout_history.csv", "w");
-        if(file == NULL){
-            printf("[ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
-            return;
-        }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Customer ID], [Customer Name], [Service Charge]\n");
-        if(ferrror(file)){
-            printf("[ERROR]: Error writing to CHECKOUT file.\n");
-            return;
-        }
-    }
-    else {
-        file = fopen("checkout_history.csv", "a");
-    }
-
-    char checkout_time[30];
-    get_current_time_string(checkout_time, sizeof(checkout_time));
-
-    fprintf(file, "%d, %s, %f, %s\n", 
-            node->data.id,
-            node->data.name,
-            node->data.service_charge,
-            checkout_time);
-
-    if (ferror(file)){
-        printf("[ERROR]: Error writing to file.\n");
+    if(file == NULL){
+        printf("[IO ERROR]: Cannot save customer info to WAITING-LIST file. File is currently opened.\n");
         return;
-    } 
-    printf("[CHECKOUT] Successfully checkout for Customer: %s.\n", node->data.name);   
-}
-
-void IO_SaveCustomerToWaitingListFile(CustomerNode* new_node){
-    FILE* file;
-    file = fopen("waiting_list.csv", "r");
-
-    if (file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("waiting_list.csv", "w");
-        if (file == NULL){
-            printf("[ERROR]: Cannot open WAITING-LIST file. File is currently opened.\n");
-            return;
-        }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Customer ID], [Customer Name]\n");
-        if (ferrror(file)){
-            printf("[ERROR]: Error writing to WAITING-LIST file.\n");
-            return;
-        }
     }
-    else {
-        /* If file already exists, append new info to it*/
-        file = fopen("waiting_list.csv", "a");
+    
+    fseek(file, 0, SEEK_END);
+    if (ftell(file) == 0){
+        /* If the file is empty, create Table Header */
+        fprintf(file, "Customer ID, Customer Name\n");
     }
 
     fprintf(file, "%d, %s\n", 
-            new_node->data.id,
-            new_node->data.name);
+            customer.id,
+            customer.name);
 
     if(ferror(file)){
-        printf("[ERROR]: Error writing to WAITING-LIST file.\n");
+        printf("[IO ERROR]: Error writing to WAITING-LIST file.\n");
+        fclose(file);
         return;
     } 
-
-    printf("[WAITING-LIST] Successfully add to waiting list customer: %s.\n", new_node->data.name);   
+    fclose(file);
+    printf("[IO SUCCESS] Added to waiting list customer: %s, ID: '%d'.\n", customer.name, customer.id);   
 }
 
 
-void IO_RemoveCustomerFromWaitingListFile(CustomerNode* node){
+void IO_RemoveCustomerFromWaitingListFile(Customer customer){
     /* Method: Create a new file and copy all customer's info
     from the waiting_list.csv file, except to the to-be-removed customer*/
     FILE* file;
@@ -104,117 +59,147 @@ void IO_RemoveCustomerFromWaitingListFile(CustomerNode* node){
         printf("[ERROR]: Cannot open WAITING-LIST file. File is currently opened.\n");
         return;
     }
-    fprintf(file, "[Customer ID], [Customer Name]\n");
+    fprintf(file, "Customer ID, Customer Name\n");
 
-    CustomerNode *temp = g_customerQueue;
+    CustomerNode *temp = g_customerQueue->front;
     while(temp != NULL){
-        if(strcmp(node->data.name, temp->data.name) && (temp->data.id == node->data.id)){
-            /* Skip this barber*/
+        if(strcmp(customer.name, temp->data.name) == 0 && (temp->data.id == customer.id)){
+            /* Skip this customer*/
             temp = temp->next;
+            continue;
         }
-        else{
-            fprintf(file, "%d, %s, %d\n", 
-            temp->data.id,
-            temp->data.name,
-            temp->data.status);
+        fprintf(file, "%d, %s\n", 
+        temp->data.id,
+        temp->data.name);
 
-            if(ferror(file)){
-                printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-                return;
-            } 
+        if(ferror(file)){
+            printf("[IO ERROR]: Error writing to WAITING-LIST file.\n");
+            fclose(file);
+            return;
         }
     }
+    fclose(file);
 }
 
-void IO_SaveCustomerToServingListFile(CustomerNode* node){
+void IO_SaveCustomerToServingListFile(Customer customer){
     FILE* file;
     file = fopen("serving_list.csv", "a");
 
     if(file == NULL){
-        printf("[ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
+        printf("[IO ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
         return;
     }
     
     fseek(file, 0, SEEK_END);
     if (ftell(file) == 0){
         /* If the file is empty, create Table Header */
-        fprintf(file, "[Customer ID], [Customer Name], [Assigned Barber ID]\n");
+        fprintf(file, "Customer ID, Customer Name, Assigned Barber ID\n");
     }
 
     char start_time[30];
     get_current_time_string(start_time, sizeof(start_time));
 
     fprintf(file, "%d, %s, %d, %s\n", 
-            node->data.id,
-            node->data.name,
-            node->data.assigned_barber_id,
+            customer.id,
+            customer.name,
+            customer.assigned_barber_id,
             start_time);
 
     if (ferror(file)){
-        printf("[ERROR]: Error writing to file.\n");
+        printf("[IO ERROR]: Error writing to SERVING-LIST file.\n");
+        fclose(file);
         return;
     }
     
     fclose(file);
-    printf("[SERVICE] Start service for Customer: %s.\n", node->data.name);   
+    // printf("[SERVICE] Start service for Customer: %s.\n", node->data.name);   
 }
 
 
-void IO_SaveBarberToListFile(BarberNode* new_node){
+void IO_SaveCustomerToCheckoutFiles(Customer customer){
     FILE* file;
-    file = fopen("barber_list.csv", "r");
+    file = fopen("checkout_history.csv", "a");
 
     if(file == NULL){
-        /* Create a new file if it does not exist*/
-        file = fopen("barber_list.csv", "w");
-        if(file == NULL){
-            printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
-            return;
-        }
-        /* Create Table Header in CSV File*/
-        fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
-        if(ferrror(file)){
-            printf("[ERROR]: Error writing to BARBER-LIST file.\n");
-            return;
-        }
+        printf("[IO ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
+        return;
     }
-    else{
-        /* If file already exists, append new info to it*/
-        file = fopen("barber_list.csv", "a");
+    
+    fseek(file, 0, SEEK_END);
+    if (ftell(file) == 0){
+        /* If the file is empty, create Table Header */
+        fprintf(file, "Customer ID, Customer Name, Service Charge\n");
+    }
+
+    char checkout_time[30];
+    get_current_time_string(checkout_time, sizeof(checkout_time));
+    customer.service_charge = 80000;
+    
+    fprintf(file, "%d, %s, %f, %s\n", 
+            customer.id,
+            customer.name,
+            customer.service_charge,
+            checkout_time);
+
+    if (ferror(file)){
+        printf("[IO ERROR]: Error writing to file.\n");
+        fclose(file);
+        return;
+    } 
+    fclose(file);
+    printf("[IO SUCCESS] Checked out for Customer: %s, ID: '%d'.\n", customer.name, customer.id);   
+}
+
+
+void IO_SaveBarberToListFile(Barber barber){
+    FILE* file;
+    file = fopen("barber_list.csv", "a");
+
+    if(file == NULL){
+        printf("[IO ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+        return;
+    }
+    
+    fseek(file, 0, SEEK_END);
+    if (ftell(file) == 0){
+        /* If the file is empty, create Table Header */
+        fprintf(file, "Barber ID, Barber Name, Status\n");
     }
 
     fprintf(file, "%d, %s, %d\n", 
-        new_node->data.id,
-        new_node->data.name,
-        new_node->data.status);
+        barber.id,
+        barber.name,
+        barber.status);
 
     if(ferror(file)){
-        printf("[ERROR]: Error writing to BARBER-LIST file.\n");
+        printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
+        fclose(file);
         return;
     } 
-    printf("[BARBER-LIST] Successfully add to barber list: %s.\n", new_node->data.name);  
+    fclose(file);
+    printf("[IO SUCCESS] Added barber %s barber list.\n", barber.name);  
 }
 
 
-void IO_RemoveBarberFromListFile(BarberNode* node){
+void IO_RemoveBarberFromListFile(Barber barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, except to the to-be-removed barber*/
     FILE* file;
     if(g_barberList == NULL){
-        printf("[ERROR] Barber list is empty.\n");
+        printf("[IO ERROR] Barber list is empty.\n");
         return;
     }
 
     file = fopen("barber_list.csv", "w");
     if(file == NULL){
-        printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+        printf("[IO ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
         return;
     }
-    fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
+    fprintf(file, "Barber ID, Barber Name, Status\n");
 
     BarberNode *temp = g_barberList;
     while(temp != NULL){
-        if(strcmp(temp->data.name, node->data.name) == 0 && (temp->data.id == node->data.id)){
+        if(strcmp(temp->data.name, barber.name) == 0 && (temp->data.id == barber.id)){
             /* Skip this barber*/
             temp = temp->next;
         }
@@ -225,55 +210,88 @@ void IO_RemoveBarberFromListFile(BarberNode* node){
             temp->data.status);
 
             if(ferror(file)){
-                printf("[ERROR]: Error writing to BARBER-LIST file.\n");
+                printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
+                fclose(file);
                 return;
             } 
         }
     }
+    fclose(file);
 }
 
-void IO_UpdateBarberStatusToListFile(BarberNode* node, BarberStatus status){
+void IO_UpdateBarberStatusToListFile(Barber barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, update status of the to-be-updated barber*/
     FILE* file;
     if(g_barberList == NULL){
-        printf("[ERROR] Barber list is empty.\n");
+        printf("[IO ERROR] Barber list is empty.\n");
         return;
     }
 
     file = fopen("barber_list.csv", "w");
     if(file == NULL){
-        printf("[ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+        printf("[IO ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
         return;
     }
-    fprintf(file, "[Barber ID], [Barber Name], [Status]\n");
+    fprintf(file, "Barber ID, Barber Name, Status\n");
 
     BarberNode *temp = g_barberList;
     int check = 0;
 
     while(temp != NULL){
-        if(strcmp(temp->data.name, node->data.name) == 0 && (temp->data.id == node->data.id)){
+        if(strcmp(temp->data.name, barber.name) == 0 && (temp->data.id == barber.id)){
             /* Update this barber's status*/
-            temp->data.status = status;
+            temp->data.status = barber.status;
             check = 1;
-            printf("[BARBER-LIST] Successfully update barber's status.\n");
+            printf("[IO SUCCESS] Updated barber's status.\n");
         }
 
         fprintf(file, "%d, %s, %d\n", 
         temp->data.id,
         temp->data.name,
         temp->data.status);
+        
         temp = temp->next;
 
         if(ferror(file)){
-            printf("[ERROR]: Error writing to BARBER-LIST file.\n");
+            printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
+            fclose(file);
             return;
         }
     }
 
     if (check == 0){
-        printf("[ERROR] To-be-updated Barber does not exist.\n");
+        printf("[ERROR] Barber does not exist.\n");
     }
+    fclose(file);
+}
+
+void IO_RefreshWaitingListFile(){
+    FILE* file;
+    file = fopen("waiting_list.csv", "w");
+    fclose();
+}
+
+void IO_RefreshServingListFile(){
+    FILE* file;
+    file = fopen("serving_list.csv", "w");
+    fclose();
+}
+
+void IO_RefreshBarberListFile(){
+    FILE* file;
+    file = fopen("barber_list.csv", "w");
+    fclose();
+}
+
+void IO_RefreshAllFiles(){
+    FILE* file1, file2, file3;
+    file1 = fopen("waiting_list.csv", "w");
+    file2 = fopen("serving_list.csv", "w");
+    file3 = fopen("barber_list.csv", "w");
+    fclose(file1);
+    fclose(file2);
+    fclose(file3);
 }
 
 

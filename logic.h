@@ -6,9 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
  
-// ============================================================================
 // DATA DEFINITIONS (STRUCTS & ENUMS)
-// ============================================================================
 
 /**
  * @brief Customer information.
@@ -53,9 +51,7 @@ typedef struct BarberNode {
     struct BarberNode* next;
 } BarberNode;
 
-// ============================================================================
 // SYSTEM INITIALIZATION
-// ============================================================================
 
 /**
  * @brief Initializes the global lists and queues for the system.
@@ -63,9 +59,7 @@ typedef struct BarberNode {
  */
 void System_Init();
 
-// ============================================================================
-// TARGET OPERATION HANDLERS (CLI Wrappers)
-// ============================================================================
+// TARGET OPERATION HANDLERS
 
 void LOGIC_HandleAddCustomerWaitingList(void);
 void LOGIC_HandleStartCustomerService(void);
@@ -75,9 +69,7 @@ void LOGIC_HandleAddBarber(void);
 void LOGIC_HandleUpdateBarberStatus(void);
 void LOGIC_HandleRemoveBarber(void);
 
-// ============================================================================
 // DISPLAY & UTILITY FUNCTIONS
-// ============================================================================
 
 /**
  * @brief Displays the current status of all barbers.

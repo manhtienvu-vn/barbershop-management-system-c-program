@@ -1,25 +1,11 @@
-/**
- * @file logic.c
- * @brief Implements data structures and operation handlers for the Barbershop.
- */
-
 #include "logic.h"
 
-// ============================================================================
 // GLOBAL STATE
-// ============================================================================
-
 CustomerQueue* g_customerQueue = NULL;
 CustomerNode* g_servingList = NULL;
 BarberNode* g_barberList = NULL;
 
-// ============================================================================
 // CORE DATA STRUCTURE ALGORITHMS 
-// ============================================================================
-
-/**
- * @brief Internal function to initialize the queue.
- */
 CustomerQueue* CreateQueue() {
     CustomerQueue* queue = (CustomerQueue*)malloc(sizeof(CustomerQueue));
     if (queue != NULL) {
@@ -37,9 +23,7 @@ void LOGIC_SystemInit() {
     g_barberList = NULL;
 }
 
-// ============================================================================
 // OPERATION HANDLER IMPLEMENTATIONS
-// ============================================================================
 
 void LOGIC_HandleAddCustomerWaitingList(Customer customer) {
     if (g_customerQueue == NULL) {
@@ -102,7 +86,7 @@ void LOGIC_HandleRemoveCustomerWaitingList(Customer customer) {
         g_customerQueue->rear = prev;
     }
 
-    printf("[-] Customer '%s' removed from the queue.\n", current->data.name);
+    printf("[LOGIC SUCCESS] Customer '%s' removed from the queue.\n", current->data.name);
     free(current->data.name);
     free(current);
     g_customerQueue->count--;
@@ -199,7 +183,8 @@ void LOGIC_HandleAddBarber(Barber barber) {
 
     if (g_barberList == NULL) {
         g_barberList = new_node;
-    } else {
+    } 
+    else {
         BarberNode* temp = g_barberList;
         while (temp->next != NULL) {
             temp = temp->next;
@@ -257,9 +242,7 @@ void LOGIC_HandleRemoveBarber(Barber barber) {
     free(current);
 }
 
-// ============================================================================
 // UTILITY FUNCTIONS (For testing & UI viewing)
-// ============================================================================
 
 void LOGIC_DisplayAllBarbers() {
     printf("\n--- CURRENT BARBER ROSTER ---\n");
@@ -279,9 +262,9 @@ void LOGIC_DisplayAllBarbers() {
 }
 
 void LOGIC_DisplayWaitingQueue() {
-    printf("\n--- WAITING SOFA QUEUE (%d waiting) ---\n", g_customerQueue ? g_customerQueue->count : 0);
+    printf("\n--- WAITING LIST QUEUE (%d waiting) ---\n", g_customerQueue ? g_customerQueue->count : 0);
     if (g_customerQueue == NULL || g_customerQueue->front == NULL) {
-        printf("The sofa is empty.\n");
+        printf("The waiting list is empty.\n");
         return;
     }
 

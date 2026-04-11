@@ -3,6 +3,10 @@
 #include <stdio.h> 
 #include <stdbool.h>
 
+/* Use these enum variables to switch between ui pages */
+UI_State g_state = MENU_PAGE, g_lastState = MENU_PAGE;
+UI_Substate g_subState = NO;
+
 static bool invalid_input_error(int input_command, int MIN_RANGE, int MAX_RANGE){
     if (input_command < MIN_RANGE || input_command > MAX_RANGE){
         return true;
@@ -10,7 +14,7 @@ static bool invalid_input_error(int input_command, int MIN_RANGE, int MAX_RANGE)
     return false;
 }
 
-static void UI_LogInvalidCommandError(){
+static void UI_LogInvalidInputError(){
     printf("[ERROR]: Invalid command. Try again!\n");
     printf("[TYPE YOUR CHOICE]: ");
 }
@@ -33,19 +37,51 @@ int UI_GetInputCommand(int MIN_RANGE, int MAX_RANGE){
     return input_command;
 }
 
-void UI_ShowCustomerPage(){
+void UI_ClearScreen(){
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void UI_ShowMenu(){
     UI_ClearScreen();
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
-    printf("|==================*CUSTOMER MANAGEMENT PAGE*=====================|\n");
-    printf("| 1. Add customer to waiting list.                                |\n");
-    printf("| 2. Remove customer from waiting list.                           |\n");
-    printf("| 3. Return to MENU.                                              |\n");
-    printf("| 4. Exit.                                                        |\n");
+    printf("|=================================================================|\n");
+    printf("| 1. Open Customer Management Page.                               |\n");
+    printf("| 2. Open Barber Management Page.                                 |\n");
+    printf("| 3. Exit.                                                        |\n");
     printf("|-----------------------------------------------------------------|\n");
-    printf("[TYPE YOUR CHOICE]: ");
+    printf("[TYPE YOUR CHOICE (1, 2, 3)]: ");
 }
 
+void UI_HandleMenuPage(){
+    UI_ShowMenu();
+    int command = UI_GetInput(CUSTOMER_PAGE, STATE_EXIT);
+    g_state = command;
+}
+
+void UI_ShowCustomerManagementPage(){
+    if (g_state != g_lastState) {
+        UI_ClearScreen();
+        printf("|-----------------------------------------------------------------|\n");
+        printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
+        printf("|==================*CUSTOMER MANAGEMENT PAGE*=====================|\n");
+        printf("| 1. Add customer to waiting list.                                |\n");
+        printf("| 2. Remove customer from waiting list.                           |\n");
+        printf("| 3. Start service: from waiting list to serving list.            |\n");
+        printf("| 4. Payment & Checkout.                                          |\n");
+        printf("| 5. Return to MENU.                                              |\n");
+        printf("| 6. Exit.                                                        |\n");
+        printf("|-----------------------------------------------------------------|\n");
+        printf("[TYPE YOUR CHOICE (1, 2, 3, 4, 5, 6)]: ");
+    }
+    else {
+        printf("[TYPE YOUR CHOICE (1, 2, 3, 4, 5, 6)]: ");
+    }
+}
 
 Customer UI_HandleAddCustomerWaitingList(){
     Customer customer;
@@ -54,7 +90,7 @@ Customer UI_HandleAddCustomerWaitingList(){
     
     printf("\n--- ADD CUSTOMER TO WAITING LIST ---\n");
     printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
-    fgets(customer.name, sizeof(customer.name), stdin);
+    scanf(" %[^\n]", customer.name);
 
     printf("[UI] Enter customer ID (Integer): ");
     scanf("%d", &customer.id);
@@ -68,7 +104,7 @@ Customer UI_HandleRemoveCustomerWaitingList(){
     
     printf("\n--- REMOVE CUSTOMER FROM WAITING LIST ---\n");
     printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
-    fgets(customer.name, sizeof(customer.name), stdin);
+    scanf(" %[^\n]", customer.name);
 
     printf("[UI] Enter customer ID (Integer): ");
     scanf("%d", &customer.id);
@@ -87,7 +123,7 @@ Customer UI_HandleCustomerCheckout(){
     
     printf("\n--- CUSTOMER CHECKOUT ---\n");
     printf("[UI] Enter customer name (EXACTLY Upper/Lowercase): ");
-    fgets(customer.name, sizeof(customer.name), stdin);
+    scanf(" %[^\n]", customer.name);
 
     printf("[UI] Enter customer ID (Integer): ");
     scanf("%d", &customer.id);
@@ -95,50 +131,39 @@ Customer UI_HandleCustomerCheckout(){
     return customer;
 }
 
-void UI_HandleCustomerPage(){
-    UI_ShowUpdateCustomer();
-
-    typedef enum {ADD_CUSTOMER_WAITING_LIST = 0, REMOVE_CUSTOMER_WAITING_LIST, RETURN_MENU, EXIT} SubState;
-
-    int command = UI_GetInput(ADD_CUSTOMER_WAITING_LIST, EXIT);
-
-    switch(command){
-        case ADD_CUSTOMER_WAITING_LIST:
-            UI_HandleAddCustomerWaitingList();
-            break;
-
-        case REMOVE_CUSTOMER_WAITING_LIST:
-            break;
-
-        case RETURN_MENU:
-            break;
-
-        case EXIT:
-            break;
-    }
+void UI_HandleCustomerManagementPage(){
+    UI_ShowCustomerManagementPage();
+    int command = UI_GetInput(ADD_CUSTOMER_WAITING_LIST, EXIT1);
+    g_subState = command;
 }
 
-void UI_ShowBarberPage(){
-    UI_ClearScreen();
-    printf("|-----------------------------------------------------------------|\n");
-    printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
-    printf("|================== *BARBER MANAGEMENT PAGE* =====================|\n");
-    printf("| 1. Add new barber.                                              |\n");
-    printf("| 2. Update barber status (AVAILABLE/BUSY).                       |\n");
-    printf("| 3. Remove barber from barber list.                              |\n");
-    printf("| 4. Return to MENU.                                              |\n");
-    printf("| 5. Exit.                                                        |\n");
-    printf("|-----------------------------------------------------------------|\n");
-    printf("[TYPE YOUR CHOICE]: ");
+void UI_ShowBarberManagementPage(){
+    if (g_state != g_lastState){
+        UI_ClearScreen();
+        printf("|-----------------------------------------------------------------|\n");
+        printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
+        printf("|================== *BARBER MANAGEMENT PAGE* =====================|\n");
+        printf("| 7. Add new barber.                                              |\n");
+        printf("| 8. Update barber status (AVAILABLE/BUSY).                       |\n");
+        printf("| 9. Remove barber from barber list.                              |\n");
+        printf("| 5. Return to MENU.                                              |\n");
+        printf("| 10. Exit.                                                        |\n");
+        printf("|-----------------------------------------------------------------|\n");
+        printf("[TYPE YOUR CHOICE (5, 7, 8, 9, 10)]: ");
+    }
+    else {
+        printf("[TYPE YOUR CHOICE (5, 7, 8, 9, 10)]: ");
+    }
+    
 }
 
 Barber UI_HandleAddBarber(){
     Barber barber;
     UI_LogSuccess();
     
-    printf("Type the barber name to ADD (EXACTLY Upper/Lowercase): ");
-    fgets(barber.name, sizeof(barber.name), stdin);
-    printf("Type the barber ID to ADD (Integer):  ");
+    printf("[UI] Type the barber name to ADD (EXACTLY Upper/Lowercase): ");
+    scanf(" %[^\n]", barber.name);
+    printf("[UI] Type the barber ID to ADD (Integer):  ");
     scanf("%d", &barber.id);
     
     return barber;
@@ -146,10 +171,9 @@ Barber UI_HandleAddBarber(){
 
 Barber UI_HandleRemoveBarber(){
     Barber barber;
-
     UI_LogSuccess();
     
-    printf("Type the barber ID to REMOVE (Integer): ");
+    printf("[UI] Type the barber ID to REMOVE (Integer): ");
     scanf("%d", &barber.id);
 
     return barber;
@@ -159,35 +183,20 @@ Barber UI_HandleUpdateBarberStatus(){
     Barber barber;
     UI_LogSuccess();
     
-    printf("Type the barber ID to UPDATE status (Integer): ");
+    printf("[UI] Type the barber ID to UPDATE status (Integer): ");
     scanf("%d", &barber.id);
-    printf("Type (0/1) for (AVAILABLE/BUSY): ");
+    printf("[UI] Type (0/1) for (AVAILABLE/BUSY): ");
     scanf("%d", &barber.status);
     
     return barber;
 }
 
 
-void UI_HandleBarberPage(){
-    typedef enum {ADD_BARBER = 0, UPDATE_BARBER_STATUS, REMOVE_BARBER, EXIT} SubState;
-    UI_ShowUpdateBarber();
-    int command = UI_GetInput(ADD_BARBER, EXIT);
-
-    switch(command){
-        case ADD_BARBER:
-            break;
-
-        case UPDATE_BARBER_STATUS:
-            break;
-
-        case REMOVE_BARBER:
-            break;
-
-        case EXIT:
-            break;
-    }
+int UI_HandleBarberMangementPage(){
+    UI_ShowBarberManagementPage();
+    int command = UI_GetInput(ADD_BARBER, EXIT2);
+    g_subState = command;
 }
-
 
 
 void UI_HandleViewCustomerWaitingList(){
@@ -215,27 +224,6 @@ void UI_HandleExit(){
     printf("|-----------------------------------------------------------------|\n");
     printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
     printf("|=================== AUTOMATICALLY SAVING DATA ===================|\n");
+    printf("|=======================    THANK YOU!    ========================|\n");
 }
 
-void UI_ShowMenu(){
-    UI_ClearScreen();
-    printf("|-----------------------------------------------------------------|\n");
-    printf("|******** VINUNIVERSITY BARBERSHOP MANAGEMENT APPLICATION ********|\n");
-    printf("|=================================================================|\n");
-    printf("| 1. Update customer in waiting list.                             |\n");
-    printf("| 2. Update barber's status.                                      |\n");
-    printf("| 3. Payment & Checkout.                                          |\n");        
-    printf("| 4. View customer waiting list.                                  |\n");
-    printf("| 5. View history.                                                |\n");
-    printf("| 6. Exit.                                                        |\n");
-    printf("|-----------------------------------------------------------------|\n");
-    printf("[TYPE YOUR CHOICE]: ");
-}
-
-void UI_ClearScreen(){
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
-}
