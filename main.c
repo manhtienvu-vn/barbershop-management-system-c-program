@@ -1,16 +1,8 @@
-#include "ui.h"
-#include "database.h"
-#include "logic.h"
+#include "operation.h"
 #include <stdio.h> 
-
-
+#include <stdlib.h>
 
 int main(void){
-    // while(1){
-    //     UI_ShowMenu();
-    //     UI_GetInput(PAGE_UPDATE_CUSTOMER, PAGE_EXIT);
-    //     UI_ClearScreen();
-    // }
-
+    OP_RunProgram();
     return 0;
 }

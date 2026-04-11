@@ -1,14 +1,80 @@
 #include "operation.h"
 
-extern UI_State g_state, g_lastState;
-extern UI_SubState g_subState;
 
-void OP_LoadSystemFromAllFiles(){
 
+void OP_LoadSystemFromAllFiles() {
+    char buffer[512];
+    char time_trash[50];
+
+    // --- 1. NẠP WAITING LIST (Dùng Queue) ---
+    FILE* f1 = fopen("waiting_list.csv", "r");
+    if (!f1) {
+        f1 = fopen("waiting_list.csv", "w");
+        if (f1) { fprintf(f1, "Customer ID, Customer Name\n"); fclose(f1); }
+    } else {
+        g_customerQueue->count = 0;
+        g_customerQueue->front = g_customerQueue->rear = NULL; 
+        while (fgets(buffer, sizeof(buffer), f1)) {
+            if (strstr(buffer, "Customer ID") || strlen(buffer) < 3) continue;
+            CustomerNode* node = (CustomerNode*)malloc(sizeof(CustomerNode));
+            if (sscanf(buffer, " %d , %[^\n\r,]", &node->data.id, node->data.name) == 2) {
+                node->next = NULL; // BẮT BUỘC
+                if (!g_customerQueue->front) g_customerQueue->front = g_customerQueue->rear = node;
+                else { g_customerQueue->rear->next = node; g_customerQueue->rear = node; }
+                g_customerQueue->count++;
+            } else free(node);
+        }
+        fclose(f1);
+    }
+
+    // --- 2. NẠP SERVING LIST (Dùng Stack/Linked List) ---
+    FILE* f2 = fopen("serving_list.csv", "r");
+    if (!f2) {
+        f2 = fopen("serving_list.csv", "w");
+        if (f2) { fprintf(f2, "Customer ID, Customer Name, Barber ID, Time\n"); fclose(f2); }
+    } else {
+        g_servingList = NULL;
+        while (fgets(buffer, sizeof(buffer), f2)) {
+            if (strstr(buffer, "Customer ID") || strlen(buffer) < 5) continue;
+            CustomerNode* node = (CustomerNode*)malloc(sizeof(CustomerNode));
+            if (sscanf(buffer, " %d , %[^,] , %d , %[^\n\r]", &node->data.id, node->data.name, &node->data.assigned_barber_id, time_trash) == 4) {
+                node->next = g_servingList;
+                g_servingList = node;
+            } else free(node);
+        }
+        fclose(f2);
+    }
+
+    // --- 3. NẠP BARBER LIST (Dùng Linked List - DỄ TREO NHẤT) ---
+    FILE* f3 = fopen("barber_list.csv", "r");
+    if (!f3) {
+        f3 = fopen("barber_list.csv", "w");
+        if (f3) { fprintf(f3, "Barber ID, Barber Name, Status\n"); fclose(f3); }
+    } else {
+        g_barberList = NULL;
+        while (fgets(buffer, sizeof(buffer), f3)) {
+            if (strstr(buffer, "Barber ID") || strlen(buffer) < 3) continue;
+            BarberNode* node = (BarberNode*)malloc(sizeof(BarberNode));
+            int status_val;
+            if (sscanf(buffer, " %d , %[^,] , %d", &node->data.id, node->data.name, &status_val) == 3) {
+                node->data.status = (BarberStatus)status_val;
+                node->next = NULL; // CỰC KỲ QUAN TRỌNG ĐỂ KHÔNG BỊ TREO
+
+                if (!g_barberList) g_barberList = node;
+                else {
+                    BarberNode* t = g_barberList;
+                    while (t->next) t = t->next; // Sẽ không treo nếu node->next đã là NULL
+                    t->next = node;
+                }
+            } else free(node);
+        }
+        fclose(f3);
+    }
+    printf("[SYSTEM] Load completed. Waiting: %d\n", g_customerQueue->count);
 }
 
 void OP_HandleCustomerSubstate(){
-    Customer customer;
+    CustomerStr customer;
     switch (g_subState){
         case ADD_CUSTOMER_WAITING_LIST:
             customer = UI_HandleAddCustomerWaitingList();
@@ -23,37 +89,53 @@ void OP_HandleCustomerSubstate(){
             break;
 
         case START_CUSTOMER_SERVICE:
-            customer = UI_HandleStartCustomerService();
-            LOGIC_HandleStartCustomerService(customer);
-            IO_SaveCustomerToServingListFile(customer);
+            UI_HandleStartCustomerService();
+            LOGIC_HandleStartCustomerService();
+            if (g_servingList != NULL) {
+                customer.id = g_servingList->data.id;
+                strcpy(customer.name, g_servingList->data.name); 
+                IO_RemoveCustomerFromWaitingListFile(customer);
+                IO_SaveCustomerToServingListFile(customer);
+            }
             break;
         
         case PAYMENT_CHECKOUT:
             customer = UI_HandleCustomerCheckout();
             LOGIC_HandleCustomerCheckout(customer);
             IO_SaveCustomerToCheckoutFiles(customer);
+
+            break;
+        
+        case VIEW_WAITING_LIST:
+            LOGIC_DisplayWaitingQueue();
+            break;
+
+        case VIEW_SERVING_LIST:
+            LOGIC_DisplayServingList();
+            break;
+
+        case VIEW_CHECKOUT:
+            IO_ViewCheckoutHistory();
             break;
 
         case RETURN_MENU:
-            g_subState = NO;
-            g_state = MENU;
+            g_lastState = CUSTOMER_PAGE;
+            g_state = MENU_PAGE;
             break;
 
-        case EXIT:
-            g_subState = NO;
-            g_state = EXIT_STATE;
-            break;
+        case EXIT1:
+            g_state = STATE_EXIT;
+            return;
     }
 
-    if(g_state != EXIT_STATE && g_state != MENU_PAGE){
-        g_subState = NO;
+    g_subState = NO;
+    if(g_state != STATE_EXIT && g_state != MENU_PAGE){
         g_state = CUSTOMER_PAGE;
     }
-
 }
 
 void OP_HandleBarberSubstate(){
-    Barber barber;
+    BarberStr barber;
     switch (g_subState){
         case ADD_BARBER:
             barber = UI_HandleAddBarber();
@@ -63,8 +145,8 @@ void OP_HandleBarberSubstate(){
         
         case UPDATE_BARBER_STATUS:
             barber = UI_HandleUpdateBarberStatus();
-            LOGIC_UpdateBarberStatus(barber);
-            IO_UpdateBarberStatusToListFile(barber, barber.status);
+            LOGIC_HandleUpdateBarberStatus(barber);
+            IO_UpdateBarberStatusToListFile(barber);
             break;
 
         case REMOVE_BARBER:
@@ -73,25 +155,32 @@ void OP_HandleBarberSubstate(){
             IO_RemoveBarberFromListFile(barber);
             break;
 
+        case VIEW_BARBER_LIST:
+            LOGIC_DisplayBarberList();
+            break;
+
         case RETURN_MENU:
-            g_subState = NO;
+            g_lastState = BARBER_PAGE;
             g_state = MENU_PAGE;
             break;
 
-        case EXIT:
-            g_subState = NO;
-            g_state = EXIT_STATE;
-            break;
+        case EXIT2:
+            g_state = STATE_EXIT;
+            return;
     }
     g_subState = NO;
-    g_state = BARBER_PAGE;
+    if(g_state != STATE_EXIT && g_state != MENU_PAGE){
+        g_state = BARBER_PAGE;
+    }
 }
 
 void OP_RunProgram(){
+    LOGIC_SystemInit();
     /* Initialize data structures (linkedlists, queue) from .csv files in computer*/
     OP_LoadSystemFromAllFiles();
 
     while(g_state != STATE_EXIT){
+        UI_State temp_state = g_state;
         switch(g_state) {
             case MENU_PAGE:
                 UI_HandleMenuPage();
@@ -107,10 +196,15 @@ void OP_RunProgram(){
                 OP_HandleBarberSubstate();
                 break;
             
-            case EXIT_STATE:
+            case STATE_EXIT:
                 UI_HandleExit();
                 break;
         }
-        g_lastState = g_state;
+
+        if (g_state == STATE_EXIT){
+            exit(0);
+        }
+
+        g_lastState = temp_state;
     }
 }

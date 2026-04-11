@@ -7,7 +7,8 @@ typedef struct{
     char name[30];
     int id;
     int assigned_barber_id;
-} Customer;
+    float service_charge;
+} CustomerStr;
 
 /**
  * @brief Working status of a barber.
@@ -22,6 +23,6 @@ typedef struct{
     char name[20];
     int id;
     BarberStatus status;
-} Barber;
+} BarberStr;
 
 #endif

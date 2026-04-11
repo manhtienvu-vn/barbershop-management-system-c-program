@@ -5,20 +5,27 @@
 #include <stdlib.h>
 #include <time.h>
 #include "logic.h"
+#include "common.h"
+
+extern CustomerQueue* g_customerQueue;
+extern BarberNode* g_barberList;
 
 void IO_LoadAllFiles();
 
 /* WAITING FOR SERVICE (in the bench hahahahahaha) */
-void IO_SaveCustomerToWaitingListFile(CustomerNode* new_node);
-void IO_RemoveCustomerFromWaitingListFile(CustomerNode* node);
-
-/* CUSTOMER BEING SERVED BY BARBER (in the barber chair) */
-void IO_SaveCustomerToServingListFile(CustomerNode* node);
-void IO_SaveCustomerToCheckoutFile(CustomerNode* node);
+void IO_SaveCustomerToWaitingListFile(CustomerStr customer);
+void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer);
+void IO_SaveCustomerToServingListFile(CustomerStr customer);
+void IO_SaveCustomerToCheckoutFiles(CustomerStr customer);
 
 /* BARBER INFORMATION MANAGEMENT*/
-void IO_SaveBarberToListFile(BarberNode* new_node);
-void IO_RemoveBarberFromListFile(BarberNode* node);
-void IO_UpdateBarberStatusToListFile(BarberNode* node, BarberStatus status);
+void IO_SaveBarberToListFile(BarberStr barber);
+void IO_RemoveBarberFromListFile(BarberStr barber);
+void IO_UpdateBarberStatusToListFile(BarberStr barber);
+void IO_ViewCheckoutHistory();
+void IO_RefreshWaitingListFile();
+void IO_RefreshServingListFile();
+void IO_RefreshBarberListFile();
+void IO_RefreshAllFiles();
 
 #endif 

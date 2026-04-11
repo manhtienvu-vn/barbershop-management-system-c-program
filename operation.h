@@ -6,13 +6,16 @@
 #include "common.h"
 #include "ui.h"
 
-void OP_HandleAddCustomerWaitingList();
-void OP_HandleRemoveCustomerWaitingList();
-void OP_HandleStartCustomerService();
-void OP_HandleCustomerCheckout();
-void OP_HandleAddBarber();
-void OP_HandleUpdateBarberStatus();
-void OP_HandleRemoveBarber();
-void OP_HandleExit();
+extern UI_State g_state, g_lastState;
+extern UI_SubState g_subState;
+
+extern CustomerQueue* g_customerQueue;
+extern CustomerNode* g_servingList;
+extern BarberNode* g_barberList;
+
+void OP_LoadSystemFromAllFiles();
+void OP_HandleCustomerSubstate();
+void OP_HandleBarberSubstate();
+void OP_RunProgram();
 
 #endif

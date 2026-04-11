@@ -13,7 +13,7 @@
  */
 typedef struct {
     int id;
-    char* name; 
+    char name[30]; 
     int assigned_barber_id;
 } Customer;
 
@@ -57,28 +57,21 @@ typedef struct BarberNode {
  * @brief Initializes the global lists and queues for the system.
  * Must be called once at the start of main().
  */
-void System_Init();
+void LOGIC_SystemInit();
 
 // TARGET OPERATION HANDLERS
-
-void LOGIC_HandleAddCustomerWaitingList(void);
+void LOGIC_HandleAddCustomerWaitingList(CustomerStr customer); 
+void LOGIC_HandleRemoveCustomerWaitingList(CustomerStr customer);
 void LOGIC_HandleStartCustomerService(void);
-void LOGIC_HandleCustomerStartService(void);
-void LOGIC_HandleCustomerCheckout(void);
-void LOGIC_HandleAddBarber(void);
-void LOGIC_HandleUpdateBarberStatus(void);
-void LOGIC_HandleRemoveBarber(void);
+void LOGIC_HandleCustomerCheckout(CustomerStr customer);
+void LOGIC_HandleAddBarber(BarberStr barber);
+void LOGIC_HandleUpdateBarberStatus(BarberStr barber);
+void LOGIC_HandleRemoveBarber(BarberStr barber);
 
 // DISPLAY & UTILITY FUNCTIONS
 
-/**
- * @brief Displays the current status of all barbers.
- */
-void LOGIC_DisplayAllBarbers();
-
-/**
- * @brief Displays the customers currently waiting in the queue.
- */
 void LOGIC_DisplayWaitingQueue();
+void LOGIC_DisplayServingList();
+void LOGIC_DisplayBarberList();
 
 #endif // LOGIC_H_  

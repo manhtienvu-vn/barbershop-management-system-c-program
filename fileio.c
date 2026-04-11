@@ -1,7 +1,6 @@
 #include "fileio.h"
 
-extern CustomerQueue* g_customerQueue;
-extern BarberNode* g_barberList;
+
 
 static void get_current_time_string(char* buffer, int buffer_size){
     /* Get the number of seconds from 1900 to now*/
@@ -16,7 +15,7 @@ static void get_current_time_string(char* buffer, int buffer_size){
     strftime(buffer, buffer_size, "%d/%m/%Y %H:%M:%S", timeinfo);
 }
 
-void IO_SaveCustomerToWaitingListFile(Customer customer){
+void IO_SaveCustomerToWaitingListFile(CustomerStr customer){
     FILE* file;
     file = fopen("waiting_list.csv", "a");
 
@@ -45,7 +44,7 @@ void IO_SaveCustomerToWaitingListFile(Customer customer){
 }
 
 
-void IO_RemoveCustomerFromWaitingListFile(Customer customer){
+void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer){
     /* Method: Create a new file and copy all customer's info
     from the waiting_list.csv file, except to the to-be-removed customer*/
     FILE* file;
@@ -71,17 +70,13 @@ void IO_RemoveCustomerFromWaitingListFile(Customer customer){
         fprintf(file, "%d, %s\n", 
         temp->data.id,
         temp->data.name);
-
-        if(ferror(file)){
-            printf("[IO ERROR]: Error writing to WAITING-LIST file.\n");
-            fclose(file);
-            return;
-        }
+        
+        temp = temp->next;
     }
     fclose(file);
 }
 
-void IO_SaveCustomerToServingListFile(Customer customer){
+void IO_SaveCustomerToServingListFile(CustomerStr customer){
     FILE* file;
     file = fopen("serving_list.csv", "a");
 
@@ -116,9 +111,9 @@ void IO_SaveCustomerToServingListFile(Customer customer){
 }
 
 
-void IO_SaveCustomerToCheckoutFiles(Customer customer){
+void IO_SaveCustomerToCheckoutFiles(CustomerStr customer){
     FILE* file;
-    file = fopen("checkout_history.csv", "a");
+    file = fopen("checkout.csv", "a");
 
     if(file == NULL){
         printf("[IO ERROR]: Cannot save customer info to CHECKOUT file. File is currently opened.\n");
@@ -151,7 +146,7 @@ void IO_SaveCustomerToCheckoutFiles(Customer customer){
 }
 
 
-void IO_SaveBarberToListFile(Barber barber){
+void IO_SaveBarberToListFile(BarberStr barber){
     FILE* file;
     file = fopen("barber_list.csv", "a");
 
@@ -181,7 +176,7 @@ void IO_SaveBarberToListFile(Barber barber){
 }
 
 
-void IO_RemoveBarberFromListFile(Barber barber){
+void IO_RemoveBarberFromListFile(BarberStr barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, except to the to-be-removed barber*/
     FILE* file;
@@ -219,7 +214,7 @@ void IO_RemoveBarberFromListFile(Barber barber){
     fclose(file);
 }
 
-void IO_UpdateBarberStatusToListFile(Barber barber){
+void IO_UpdateBarberStatusToListFile(BarberStr barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, update status of the to-be-updated barber*/
     FILE* file;
@@ -250,7 +245,7 @@ void IO_UpdateBarberStatusToListFile(Barber barber){
         temp->data.id,
         temp->data.name,
         temp->data.status);
-        
+
         temp = temp->next;
 
         if(ferror(file)){
@@ -266,26 +261,53 @@ void IO_UpdateBarberStatusToListFile(Barber barber){
     fclose(file);
 }
 
+void IO_ViewCheckoutHistory(){
+    FILE* file;
+    file = fopen("checkout.csv", "r");
+
+    if (file == NULL){
+        printf("[IO ERROR] CHECKOUT file does not exist.");
+        return;
+    }
+
+    printf("\n--- CHECKOUT HISTORY ---\n");
+    char buffer[255];
+    fgets(buffer, sizeof(buffer), file);
+
+    CustomerStr customer;
+    char time_stamp[30];
+    int count = 1;
+
+    while (fscanf(file, "%d, %[^,], %f, %[^\n]\n", &customer.id, customer.name, &customer.service_charge, time_stamp) == 4){
+        printf("%d. [%s] Customer ID: %-4d | Customer Name: %-15s | Service Charge: %.0f VNĐ\n", 
+               count++, time_stamp, customer.id, customer.name, customer.service_charge);
+    }
+    printf("================================================================\n");
+    fclose(file);
+}
+
 void IO_RefreshWaitingListFile(){
     FILE* file;
     file = fopen("waiting_list.csv", "w");
-    fclose();
+    fclose(file);
 }
 
 void IO_RefreshServingListFile(){
     FILE* file;
     file = fopen("serving_list.csv", "w");
-    fclose();
+    fclose(file);
 }
 
 void IO_RefreshBarberListFile(){
     FILE* file;
     file = fopen("barber_list.csv", "w");
-    fclose();
+    fclose(file);
 }
 
 void IO_RefreshAllFiles(){
-    FILE* file1, file2, file3;
+    FILE* file1;
+    FILE* file2;
+    FILE* file3;
     file1 = fopen("waiting_list.csv", "w");
     file2 = fopen("serving_list.csv", "w");
     file3 = fopen("barber_list.csv", "w");
