@@ -1,2 +1,2 @@
-Customer ID, Customer Name, Service Charge
-1, manh, 80000.000000, 12/04/2026 10:42:43
+Customer ID, Customer Name, Service Charge, Assigned Barber ID, Checkout Time
+2, vu, 80000.000000, 1, 12/04/2026 19:01:29, 

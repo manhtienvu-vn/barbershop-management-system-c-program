@@ -143,7 +143,7 @@ void OP_HandleCustomerSubstate(){
         
         case PAYMENT_CHECKOUT:
             customer = UI_HandleCustomerCheckout();
-            LOGIC_HandleCustomerCheckout(customer);
+            LOGIC_HandleCustomerCheckout(&customer);
             IO_SaveCustomerToCheckoutFiles(customer);
 
             break;

@@ -46,7 +46,7 @@ void LOGIC_SystemInit();
 void LOGIC_HandleAddCustomerWaitingList(Customer customer); 
 void LOGIC_HandleRemoveCustomerWaitingList(Customer customer);
 void LOGIC_HandleStartCustomerService(void);
-void LOGIC_HandleCustomerCheckout(Customer customer);
+void LOGIC_HandleCustomerCheckout(Customer* customer);
 void LOGIC_HandleAddBarber(Barber barber);
 void LOGIC_HandleUpdateBarberStatus(Barber barber);
 void LOGIC_HandleRemoveBarber(Barber barber);

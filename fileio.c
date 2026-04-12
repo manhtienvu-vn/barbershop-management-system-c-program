@@ -114,14 +114,14 @@ void IO_SaveCustomerToCheckoutFiles(Customer customer){
     fseek(file, 0, SEEK_END);
     if (ftell(file) == 0){
         /* If the file is empty, create Table Header */
-        fprintf(file, "Customer ID, Customer Name, Service Charge\n");
+        fprintf(file, "Customer ID, Customer Name, Service Charge, Assigned Barber ID, Checkout Time\n");
     }
 
     char checkout_time[30];
     get_current_time_string(checkout_time, sizeof(checkout_time));
     customer.service_charge = 80000;
     
-    fprintf(file, "%d, %s, %f, %s\n", customer.id, customer.name, customer.service_charge, checkout_time);
+    fprintf(file, "%d, %s, %f, %d, %s, \n", customer.id, customer.name, customer.service_charge, customer.assigned_barber_id, checkout_time);
 
     if (ferror(file)){
         printf("[IO ERROR]: Error writing to file.\n");

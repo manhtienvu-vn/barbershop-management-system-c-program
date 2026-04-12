@@ -138,22 +138,23 @@ void LOGIC_HandleStartCustomerService(void){
     }
 }
 
-void LOGIC_HandleCustomerCheckout(Customer customer) {
+void LOGIC_HandleCustomerCheckout(Customer* customer) {
     CustomerNode* current = g_servingList;
     CustomerNode* prev = NULL;
 
-    while (current != NULL && current->data.id != customer.id) {
+    while (current != NULL && current->data.id != customer->id) {
         prev = current;
         current = current->next;
     }
 
     if (current == NULL) {
-        printf("[LOGIC ERROR] Customer ID %d not found in serving list.\n", customer.id);
+        printf("[LOGIC ERROR] Customer ID %d not found in serving list.\n", customer->id);
         return;
     }
 
     /* Update new status for the assigned barber of this customer to be AVAILABLE */
     Barber barber;
+    customer->assigned_barber_id = current->data.assigned_barber_id;
     barber.id = current->data.assigned_barber_id;
     barber.status = AVAILABLE;
     LOGIC_HandleUpdateBarberStatus(barber);
@@ -166,7 +167,7 @@ void LOGIC_HandleCustomerCheckout(Customer customer) {
         prev->next = current->next;
     }
     
-    printf("[LOGIC SUCCESS] Checked out Customer %s, ID: %d.\n", customer.name, customer.id);
+    printf("[LOGIC SUCCESS] Checked out Customer %s, ID: %d.\n", customer->name, customer->id);
     free(current);
 }
 
