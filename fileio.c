@@ -1,7 +1,5 @@
 #include "fileio.h"
 
-
-
 static void get_current_time_string(char* buffer, int buffer_size){
     /* Get the number of seconds from 1900 to now*/
     time_t rawtime;
@@ -15,7 +13,7 @@ static void get_current_time_string(char* buffer, int buffer_size){
     strftime(buffer, buffer_size, "%d/%m/%Y %H:%M:%S", timeinfo);
 }
 
-void IO_SaveCustomerToWaitingListFile(CustomerStr customer){
+void IO_SaveCustomerToWaitingListFile(Customer customer){
     FILE* file;
     file = fopen("waiting_list.csv", "a");
 
@@ -30,9 +28,7 @@ void IO_SaveCustomerToWaitingListFile(CustomerStr customer){
         fprintf(file, "Customer ID, Customer Name\n");
     }
 
-    fprintf(file, "%d, %s\n", 
-            customer.id,
-            customer.name);
+    fprintf(file, "%d, %s\n", customer.id, customer.name);
 
     if(ferror(file)){
         printf("[IO ERROR]: Error writing to WAITING-LIST file.\n");
@@ -40,11 +36,11 @@ void IO_SaveCustomerToWaitingListFile(CustomerStr customer){
         return;
     } 
     fclose(file);
-    printf("[IO SUCCESS] Added to waiting list customer: %s, ID: '%d'.\n", customer.name, customer.id);   
+    printf("[IO SUCCESS] Added to waiting list customer: '%s', ID: '%d'.\n", customer.name, customer.id);   
 }
 
 
-void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer){
+void IO_RemoveCustomerFromWaitingListFile(Customer customer){
     /* Method: Create a new file and copy all customer's info
     from the waiting_list.csv file, except to the to-be-removed customer*/
     FILE* file;
@@ -53,6 +49,7 @@ void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer){
         return;
     }
 
+    /* Create a totally new file to write data */
     file = fopen("waiting_list.csv", "w");
     if(file == NULL){
         printf("[ERROR]: Cannot open WAITING-LIST file. File is currently opened.\n");
@@ -70,13 +67,13 @@ void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer){
         fprintf(file, "%d, %s\n", 
         temp->data.id,
         temp->data.name);
-        
+        /* Proceed to the next customer node */
         temp = temp->next;
     }
     fclose(file);
 }
 
-void IO_SaveCustomerToServingListFile(CustomerStr customer){
+void IO_SaveCustomerToServingListFile(Customer customer){
     FILE* file;
     file = fopen("serving_list.csv", "a");
 
@@ -94,24 +91,18 @@ void IO_SaveCustomerToServingListFile(CustomerStr customer){
     char start_time[30];
     get_current_time_string(start_time, sizeof(start_time));
 
-    fprintf(file, "%d, %s, %d, %s\n", 
-            customer.id,
-            customer.name,
-            customer.assigned_barber_id,
-            start_time);
+    fprintf(file, "%d, %s, %d, %s\n", customer.id, customer.name, customer.assigned_barber_id, start_time);
 
     if (ferror(file)){
         printf("[IO ERROR]: Error writing to SERVING-LIST file.\n");
         fclose(file);
         return;
     }
-    
     fclose(file);
-    // printf("[SERVICE] Start service for Customer: %s.\n", node->data.name);   
 }
 
 
-void IO_SaveCustomerToCheckoutFiles(CustomerStr customer){
+void IO_SaveCustomerToCheckoutFiles(Customer customer){
     FILE* file;
     file = fopen("checkout.csv", "a");
 
@@ -130,11 +121,7 @@ void IO_SaveCustomerToCheckoutFiles(CustomerStr customer){
     get_current_time_string(checkout_time, sizeof(checkout_time));
     customer.service_charge = 80000;
     
-    fprintf(file, "%d, %s, %f, %s\n", 
-            customer.id,
-            customer.name,
-            customer.service_charge,
-            checkout_time);
+    fprintf(file, "%d, %s, %f, %s\n", customer.id, customer.name, customer.service_charge, checkout_time);
 
     if (ferror(file)){
         printf("[IO ERROR]: Error writing to file.\n");
@@ -142,11 +129,10 @@ void IO_SaveCustomerToCheckoutFiles(CustomerStr customer){
         return;
     } 
     fclose(file);
-    printf("[IO SUCCESS] Checked out for Customer: %s, ID: '%d'.\n", customer.name, customer.id);   
+    printf("[IO SUCCESS] Checked out for Customer: '%s', ID: '%d'.\n", customer.name, customer.id);   
 }
 
-
-void IO_SaveBarberToListFile(BarberStr barber){
+void IO_SaveBarberToListFile(Barber barber){
     FILE* file;
     file = fopen("barber_list.csv", "a");
 
@@ -161,10 +147,7 @@ void IO_SaveBarberToListFile(BarberStr barber){
         fprintf(file, "Barber ID, Barber Name, Status\n");
     }
 
-    fprintf(file, "%d, %s, %d\n", 
-        barber.id,
-        barber.name,
-        barber.status);
+    fprintf(file, "%d, %s, %d\n", barber.id, barber.name, (int)(barber.status));
 
     if(ferror(file)){
         printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
@@ -172,11 +155,10 @@ void IO_SaveBarberToListFile(BarberStr barber){
         return;
     } 
     fclose(file);
-    printf("[IO SUCCESS] Added barber %s barber list.\n", barber.name);  
+    printf("[IO SUCCESS] Added barber '%s', ID: '%d' barber list.\n", barber.name, barber.id);  
 }
 
-
-void IO_RemoveBarberFromListFile(BarberStr barber){
+void IO_RemoveBarberFromListFile(Barber barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, except to the to-be-removed barber*/
     FILE* file;
@@ -199,10 +181,7 @@ void IO_RemoveBarberFromListFile(BarberStr barber){
             temp = temp->next;
         }
         else{
-            fprintf(file, "%d, %s, %d\n", 
-            temp->data.id,
-            temp->data.name,
-            temp->data.status);
+            fprintf(file, "%d, %s, %d\n", temp->data.id, temp->data.name, (int)(temp->data.status));
 
             if(ferror(file)){
                 printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
@@ -214,7 +193,7 @@ void IO_RemoveBarberFromListFile(BarberStr barber){
     fclose(file);
 }
 
-void IO_UpdateBarberStatusToListFile(BarberStr barber){
+void IO_UpdateBarberStatusToListFile(Barber barber){
     /* Method: Create a new file and copy all barber's info
     from the barber_list.csv file, update status of the to-be-updated barber*/
     FILE* file;
@@ -241,10 +220,7 @@ void IO_UpdateBarberStatusToListFile(BarberStr barber){
             printf("[IO SUCCESS] Updated barber's status.\n");
         }
 
-        fprintf(file, "%d, %s, %d\n", 
-        temp->data.id,
-        temp->data.name,
-        temp->data.status);
+        fprintf(file, "%d, %s, %d\n", temp->data.id, temp->data.name, (int)(temp->data.status));
 
         temp = temp->next;
 
@@ -271,15 +247,16 @@ void IO_ViewCheckoutHistory(){
     }
 
     printf("\n--- CHECKOUT HISTORY ---\n");
+    /* Skip the table header line */
     char buffer[255];
     fgets(buffer, sizeof(buffer), file);
 
-    CustomerStr customer;
+    Customer customer;
     char time_stamp[30];
     int count = 1;
 
     while (fscanf(file, "%d, %[^,], %f, %[^\n]\n", &customer.id, customer.name, &customer.service_charge, time_stamp) == 4){
-        printf("%d. [%s] Customer ID: %-4d | Customer Name: %-15s | Service Charge: %.0f VNĐ\n", 
+        printf("%d. [%s] Customer ID: '%-4d' | Customer Name: '%-15s' | Service Charge: '%.0f' VND\n", 
                count++, time_stamp, customer.id, customer.name, customer.service_charge);
     }
     printf("================================================================\n");

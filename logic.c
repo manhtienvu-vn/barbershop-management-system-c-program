@@ -25,7 +25,7 @@ void LOGIC_SystemInit() {
 
 // OPERATION HANDLER IMPLEMENTATIONS
 
-void LOGIC_HandleAddCustomerWaitingList(CustomerStr customer) {
+void LOGIC_HandleAddCustomerWaitingList(Customer customer) {
     if (g_customerQueue == NULL) {
         printf("[LOGIC ERROR]: System not initialized.\n");
         return;
@@ -55,7 +55,7 @@ void LOGIC_HandleAddCustomerWaitingList(CustomerStr customer) {
     printf("[LOGIC SUCCESS] Customer '%s' added to queue. Estimated wait time: %d minutes.\n", customer.name, waitTime);
 }
 
-void LOGIC_HandleRemoveCustomerWaitingList(CustomerStr customer) {
+void LOGIC_HandleRemoveCustomerWaitingList(Customer customer) {
     if (g_customerQueue == NULL || g_customerQueue->front == NULL) {
         printf("[LOGIC ERROR] The waiting queue is currently empty.\n");
         return;
@@ -134,7 +134,7 @@ void LOGIC_HandleStartCustomerService(void){
     }
 }
 
-void LOGIC_HandleCustomerCheckout(CustomerStr customer) {
+void LOGIC_HandleCustomerCheckout(Customer customer) {
     CustomerNode* current = g_servingList;
     CustomerNode* prev = NULL;
 
@@ -150,7 +150,7 @@ void LOGIC_HandleCustomerCheckout(CustomerStr customer) {
 
 
     /* Update new status for the assigned barber of this customer to be AVAILABLE */
-    BarberStr barber;
+    Barber barber;
     barber.id = current->data.assigned_barber_id;
     barber.status = AVAILABLE;
     LOGIC_HandleUpdateBarberStatus(barber);
@@ -162,15 +162,13 @@ void LOGIC_HandleCustomerCheckout(CustomerStr customer) {
     else {
         prev->next = current->next;
     }
-
-   
     
     printf("[LOGIC SUCCESS] Checked out Customer %s, ID: %d.\n", customer.name, customer.id);
 
     free(current);
 }
 
-void LOGIC_HandleAddBarber(BarberStr barber) {
+void LOGIC_HandleAddBarber(Barber barber) {
     BarberNode* new_node = (BarberNode*)malloc(sizeof(BarberNode));
     if (new_node == NULL) {
         printf("[LOGIC ERROR] Memory allocation failed.\n");
@@ -195,7 +193,7 @@ void LOGIC_HandleAddBarber(BarberStr barber) {
     printf("[LOGIC SUCCESS] Barber '%s' added successfully.\n", barber.name);
 }
 
-void LOGIC_HandleUpdateBarberStatus(BarberStr barber) {
+void LOGIC_HandleUpdateBarberStatus(Barber barber) {
     BarberNode* current = g_barberList;
     while (current != NULL) {
         if (current->data.id == barber.id) {
@@ -205,10 +203,10 @@ void LOGIC_HandleUpdateBarberStatus(BarberStr barber) {
         }
         current = current->next;
     }
-    printf("[LOGIC ERROR] Barber ID %d not found.\n", barber.id);
+    printf("[LOGIC ERROR] Barber ID '%d' not found.\n", barber.id);
 }
 
-void LOGIC_HandleRemoveBarber(BarberStr barber) {
+void LOGIC_HandleRemoveBarber(Barber barber) {
     if (g_barberList == NULL) {
         printf("[LOGIC ERROR] Barber list is empty.\n");
         return;
@@ -232,7 +230,7 @@ void LOGIC_HandleRemoveBarber(BarberStr barber) {
     }
 
     if (current == NULL) {
-        printf("[LOGIC ERROR] Barber ID %d not found.\n", barber.id);
+        printf("[LOGIC ERROR] Barber ID '%d' not found.\n", barber.id);
         return;
     }
 
@@ -240,8 +238,6 @@ void LOGIC_HandleRemoveBarber(BarberStr barber) {
     printf("[LOGIC SUCCESS] Barber '%s', ID: '%d' removed from system.\n", current->data.name, current->data.id);
     free(current);
 }
-
-// UTILITY FUNCTIONS (For testing & UI viewing)
 
 void LOGIC_DisplayWaitingQueue() {
     printf("\n--- WAITING LIST QUEUE (%d waiting) ---\n", g_customerQueue ? g_customerQueue->count : 0);
@@ -253,7 +249,7 @@ void LOGIC_DisplayWaitingQueue() {
     CustomerNode* temp = g_customerQueue->front;
     int pos = 1;
     while (temp != NULL) {
-        printf("%d. ID: %-4d | Name: %s\n", pos++, temp->data.id, temp->data.name);
+        printf("%d. ID: '%-4d' | Name: '%s'\n", pos++, temp->data.id, temp->data.name);
         temp = temp->next;
     }
 }
@@ -290,7 +286,7 @@ void LOGIC_DisplayBarberList() {
         else{
             strcpy(buff, "AVAILABLE");
         }
-        printf("%d. Barber ID: %-4d | Barber Name: %s | Status: %s\n", pos++, temp->data.id, temp->data.name, buff);
+        printf("%d. Barber ID: '%-4d' | Barber Name: '%s' | Status: '%s'\n", pos++, temp->data.id, temp->data.name, buff);
         temp = temp->next;
     }
 }

@@ -13,15 +13,15 @@ extern BarberNode* g_barberList;
 void IO_LoadAllFiles();
 
 /* WAITING FOR SERVICE (in the bench hahahahahaha) */
-void IO_SaveCustomerToWaitingListFile(CustomerStr customer);
-void IO_RemoveCustomerFromWaitingListFile(CustomerStr customer);
-void IO_SaveCustomerToServingListFile(CustomerStr customer);
-void IO_SaveCustomerToCheckoutFiles(CustomerStr customer);
+void IO_SaveCustomerToWaitingListFile(Customer customer);
+void IO_RemoveCustomerFromWaitingListFile(Customer customer);
+void IO_SaveCustomerToServingListFile(Customer customer);
+void IO_SaveCustomerToCheckoutFiles(Customer customer);
 
 /* BARBER INFORMATION MANAGEMENT*/
-void IO_SaveBarberToListFile(BarberStr barber);
-void IO_RemoveBarberFromListFile(BarberStr barber);
-void IO_UpdateBarberStatusToListFile(BarberStr barber);
+void IO_SaveBarberToListFile(Barber barber);
+void IO_RemoveBarberFromListFile(Barber barber);
+void IO_UpdateBarberStatusToListFile(Barber barber);
 void IO_ViewCheckoutHistory();
 void IO_RefreshWaitingListFile();
 void IO_RefreshServingListFile();

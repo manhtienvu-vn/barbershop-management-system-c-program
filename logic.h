@@ -8,14 +8,6 @@
  
 // DATA DEFINITIONS (STRUCTS & ENUMS)
 
-/**
- * @brief Customer information.
- */
-typedef struct {
-    int id;
-    char name[30]; 
-    int assigned_barber_id;
-} Customer;
 
 /**
  * @brief Singly Linked List node for the Customer Queue.
@@ -35,15 +27,6 @@ typedef struct {
 } CustomerQueue;
 
 /**
- * @brief Barber information.
- */
-typedef struct {
-    int id;
-    char* name;
-    BarberStatus status;
-} Barber;
-
-/**
  * @brief Singly Linked List node for the Barber list.
  */
 typedef struct BarberNode {
@@ -60,13 +43,13 @@ typedef struct BarberNode {
 void LOGIC_SystemInit();
 
 // TARGET OPERATION HANDLERS
-void LOGIC_HandleAddCustomerWaitingList(CustomerStr customer); 
-void LOGIC_HandleRemoveCustomerWaitingList(CustomerStr customer);
+void LOGIC_HandleAddCustomerWaitingList(Customer customer); 
+void LOGIC_HandleRemoveCustomerWaitingList(Customer customer);
 void LOGIC_HandleStartCustomerService(void);
-void LOGIC_HandleCustomerCheckout(CustomerStr customer);
-void LOGIC_HandleAddBarber(BarberStr barber);
-void LOGIC_HandleUpdateBarberStatus(BarberStr barber);
-void LOGIC_HandleRemoveBarber(BarberStr barber);
+void LOGIC_HandleCustomerCheckout(Customer customer);
+void LOGIC_HandleAddBarber(Barber barber);
+void LOGIC_HandleUpdateBarberStatus(Barber barber);
+void LOGIC_HandleRemoveBarber(Barber barber);
 
 // DISPLAY & UTILITY FUNCTIONS
 

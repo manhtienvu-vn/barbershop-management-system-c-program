@@ -38,16 +38,16 @@ void UI_ClearScreen();
 void UI_HandleMenuPage();
 
 void UI_ShowCustomerManagementPage();
-CustomerStr UI_HandleAddCustomerWaitingList();
-CustomerStr UI_HandleRemoveCustomerWaitingList();
+Customer UI_HandleAddCustomerWaitingList();
+Customer UI_HandleRemoveCustomerWaitingList();
 void UI_HandleStartCustomerService(void);
-CustomerStr UI_HandleCustomerCheckout();
+Customer UI_HandleCustomerCheckout();
 void UI_HandleCustomerManagementPage();
 
 void UI_ShowBarberManagementPage();
-BarberStr UI_HandleAddBarber();
-BarberStr UI_HandleRemoveBarber();
-BarberStr UI_HandleUpdateBarberStatus();
+Barber UI_HandleAddBarber();
+Barber UI_HandleRemoveBarber();
+Barber UI_HandleUpdateBarberStatus();
 void UI_HandleBarberManagementPage();
 
 void UI_HandleViewCustomerWaitingList();

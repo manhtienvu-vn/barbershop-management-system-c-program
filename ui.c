@@ -81,8 +81,8 @@ void UI_ShowCustomerManagementPage(){
     }
 }
 
-CustomerStr UI_HandleAddCustomerWaitingList(){
-    CustomerStr customer;
+Customer UI_HandleAddCustomerWaitingList(){
+    Customer customer;
 
     UI_LogSuccess();
     
@@ -96,8 +96,8 @@ CustomerStr UI_HandleAddCustomerWaitingList(){
     return customer;
 }
 
-CustomerStr UI_HandleRemoveCustomerWaitingList(){
-    CustomerStr customer;
+Customer UI_HandleRemoveCustomerWaitingList(){
+    Customer customer;
     UI_LogSuccess();
     
     printf("\n--- REMOVE CUSTOMER FROM WAITING LIST ---\n");
@@ -115,8 +115,8 @@ void UI_HandleStartCustomerService(void){
     printf("\n--- START CUSTOMER SERVICE (MOVE FROM WAITING TO SERVING LIST) ---\n");
 }
 
-CustomerStr UI_HandleCustomerCheckout(){
-    CustomerStr customer;
+Customer UI_HandleCustomerCheckout(){
+    Customer customer;
     UI_LogSuccess();
     
     printf("\n--- CUSTOMER CHECKOUT ---\n");
@@ -156,20 +156,20 @@ void UI_ShowBarberManagementPage(){
     
 }
 
-BarberStr UI_HandleAddBarber(){
-    BarberStr barber;
+Barber UI_HandleAddBarber(){
+    Barber barber;
     UI_LogSuccess();
     
     printf("[UI] Type the barber name to ADD (EXACTLY Upper/Lowercase): ");
     scanf(" %[^\n]", barber.name);
     printf("[UI] Type the barber ID to ADD (Integer):  ");
     scanf(" %d", &barber.id);
-    
+    barber.status = AVAILABLE;
     return barber;
 }
 
-BarberStr UI_HandleRemoveBarber(){
-    BarberStr barber;
+Barber UI_HandleRemoveBarber(){
+    Barber barber;
     UI_LogSuccess();
     printf("[UI] Type the barber name to REMOVE (EXACTLY Upper/Lowercase): ");
     scanf(" %[^\n]", barber.name);
@@ -179,8 +179,8 @@ BarberStr UI_HandleRemoveBarber(){
     return barber;
 }
 
-BarberStr UI_HandleUpdateBarberStatus(){
-    BarberStr barber;
+Barber UI_HandleUpdateBarberStatus(){
+    Barber barber;
     UI_LogSuccess();
     printf("[UI] Type the barber name to UPDATE (EXACTLY Upper/Lowercase): ");
     scanf(" %[^\n]", barber.name);

@@ -1,7 +1,5 @@
 #include "operation.h"
 
-
-
 void OP_LoadSystemFromAllFiles() {
     char buffer[512];
     char time_trash[50];
@@ -45,28 +43,43 @@ void OP_LoadSystemFromAllFiles() {
         fclose(f2);
     }
 
-    // --- 3. NẠP BARBER LIST (Dùng Linked List - DỄ TREO NHẤT) ---
+    // --- 3. LOAD BARBER LIST FROM FILE ---
     FILE* f3 = fopen("barber_list.csv", "r");
-    if (!f3) {
+
+    if (f3 == NULL) {
         f3 = fopen("barber_list.csv", "w");
-        if (f3) { fprintf(f3, "Barber ID, Barber Name, Status\n"); fclose(f3); }
-    } else {
+        if (f3 != NULL) { 
+            fprintf(f3, "Barber ID, Barber Name, Status\n"); 
+            fclose(f3); 
+        }
+    } 
+    else {
         g_barberList = NULL;
         while (fgets(buffer, sizeof(buffer), f3)) {
-            if (strstr(buffer, "Barber ID") || strlen(buffer) < 3) continue;
+            if (strstr(buffer, "Barber ID") || strlen(buffer) < 3){
+                /* Skip the table header line*/
+                continue;
+            }
             BarberNode* node = (BarberNode*)malloc(sizeof(BarberNode));
             int status_val;
             if (sscanf(buffer, " %d , %[^,] , %d", &node->data.id, node->data.name, &status_val) == 3) {
                 node->data.status = (BarberStatus)status_val;
-                node->next = NULL; // CỰC KỲ QUAN TRỌNG ĐỂ KHÔNG BỊ TREO
+                node->next = NULL; 
 
-                if (!g_barberList) g_barberList = node;
-                else {
-                    BarberNode* t = g_barberList;
-                    while (t->next) t = t->next; // Sẽ không treo nếu node->next đã là NULL
-                    t->next = node;
+                if (g_barberList == NULL){
+                    g_barberList = node;
                 }
-            } else free(node);
+                else {
+                    BarberNode* temp = g_barberList;
+                    while (temp->next != NULL){
+                        temp = temp->next; // Sẽ không treo nếu node->next đã là NULL
+                    }
+                    temp->next = node;
+                }
+            } 
+            else{
+                free(node);
+            }
         }
         fclose(f3);
     }
@@ -74,7 +87,7 @@ void OP_LoadSystemFromAllFiles() {
 }
 
 void OP_HandleCustomerSubstate(){
-    CustomerStr customer;
+    Customer customer;
     switch (g_subState){
         case ADD_CUSTOMER_WAITING_LIST:
             customer = UI_HandleAddCustomerWaitingList();
@@ -135,7 +148,7 @@ void OP_HandleCustomerSubstate(){
 }
 
 void OP_HandleBarberSubstate(){
-    BarberStr barber;
+    Barber barber;
     switch (g_subState){
         case ADD_BARBER:
             barber = UI_HandleAddBarber();
