@@ -4,46 +4,73 @@ void OP_LoadSystemFromAllFiles() {
     char buffer[512];
     char time_trash[50];
 
-    // --- 1. NẠP WAITING LIST (Dùng Queue) ---
+    // --- 1. LOAD WAITING LIST FROM CSV FILE  ---
     FILE* f1 = fopen("waiting_list.csv", "r");
-    if (!f1) {
+    if (f1 == NULL) {
         f1 = fopen("waiting_list.csv", "w");
-        if (f1) { fprintf(f1, "Customer ID, Customer Name\n"); fclose(f1); }
-    } else {
+        if (f1 != NULL) { 
+            fprintf(f1, "Customer ID, Customer Name\n");
+            fclose(f1); 
+        }
+    } 
+    else {
         g_customerQueue->count = 0;
         g_customerQueue->front = g_customerQueue->rear = NULL; 
+
         while (fgets(buffer, sizeof(buffer), f1)) {
-            if (strstr(buffer, "Customer ID") || strlen(buffer) < 3) continue;
+            if (strstr(buffer, "Customer ID") || strlen(buffer) < 3){
+                /* Skip the table header line*/
+                continue;
+            }
             CustomerNode* node = (CustomerNode*)malloc(sizeof(CustomerNode));
             if (sscanf(buffer, " %d , %[^\n\r,]", &node->data.id, node->data.name) == 2) {
-                node->next = NULL; // BẮT BUỘC
-                if (!g_customerQueue->front) g_customerQueue->front = g_customerQueue->rear = node;
-                else { g_customerQueue->rear->next = node; g_customerQueue->rear = node; }
+                node->next = NULL; 
+                if (g_customerQueue->front == NULL){ 
+                    g_customerQueue->front = g_customerQueue->rear = node;
+                }
+                else {
+                    /* Add node to the rear: FIFO (derive out from front node to serve)*/ 
+                    g_customerQueue->rear->next = node; 
+                    g_customerQueue->rear = node; 
+                }
                 g_customerQueue->count++;
-            } else free(node);
+            } 
+            else {
+                free(node);
+            }
         }
         fclose(f1);
     }
 
-    // --- 2. NẠP SERVING LIST (Dùng Stack/Linked List) ---
+    // --- 2. LOAD SERVING LIST FROM CSV FILE ---
     FILE* f2 = fopen("serving_list.csv", "r");
-    if (!f2) {
+    if (f2 == NULL) {
         f2 = fopen("serving_list.csv", "w");
-        if (f2) { fprintf(f2, "Customer ID, Customer Name, Barber ID, Time\n"); fclose(f2); }
-    } else {
+        if (f2 != NULL) { 
+            fprintf(f2, "Customer ID, Customer Name, Barber ID, Time\n"); 
+            fclose(f2); 
+        }
+    } 
+    else {
         g_servingList = NULL;
         while (fgets(buffer, sizeof(buffer), f2)) {
-            if (strstr(buffer, "Customer ID") || strlen(buffer) < 5) continue;
+            if (strstr(buffer, "Customer ID") || strlen(buffer) < 5){
+                /* Skip the table header line*/
+                continue;
+            }
             CustomerNode* node = (CustomerNode*)malloc(sizeof(CustomerNode));
             if (sscanf(buffer, " %d , %[^,] , %d , %[^\n\r]", &node->data.id, node->data.name, &node->data.assigned_barber_id, time_trash) == 4) {
                 node->next = g_servingList;
                 g_servingList = node;
-            } else free(node);
+            } 
+            else {
+                free(node);
+            }
         }
         fclose(f2);
     }
 
-    // --- 3. LOAD BARBER LIST FROM FILE ---
+    // --- 3. LOAD BARBER LIST FROM CSV FILE ---
     FILE* f3 = fopen("barber_list.csv", "r");
 
     if (f3 == NULL) {
@@ -106,9 +133,11 @@ void OP_HandleCustomerSubstate(){
             LOGIC_HandleStartCustomerService();
             if (g_servingList != NULL) {
                 customer.id = g_servingList->data.id;
+                customer.assigned_barber_id = g_servingList->data.assigned_barber_id;
                 strcpy(customer.name, g_servingList->data.name); 
                 IO_RemoveCustomerFromWaitingListFile(customer);
                 IO_SaveCustomerToServingListFile(customer);
+                IO_UpdateAllBarberStatus();
             }
             break;
         
@@ -217,7 +246,6 @@ void OP_RunProgram(){
         if (g_state == STATE_EXIT){
             exit(0);
         }
-
         g_lastState = temp_state;
     }
 }

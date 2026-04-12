@@ -22,6 +22,7 @@ void IO_SaveCustomerToCheckoutFiles(Customer customer);
 void IO_SaveBarberToListFile(Barber barber);
 void IO_RemoveBarberFromListFile(Barber barber);
 void IO_UpdateBarberStatusToListFile(Barber barber);
+void IO_UpdateAllBarberStatus();
 void IO_ViewCheckoutHistory();
 void IO_RefreshWaitingListFile();
 void IO_RefreshServingListFile();

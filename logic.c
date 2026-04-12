@@ -1,7 +1,11 @@
 #include "logic.h"
 
-// GLOBAL STATE
-CustomerQueue* g_customerQueue = NULL;
+/* GLOBAL STATE
+* Use a Queue (with Front, Rear node tracking) to manage customer Waiting List
+* Use a singly linked list g_servingList to manage customer Serving List
+* Use a singly linked list g_barberList to manage Barber List
+*/
+CustomerQueue* g_customerQueue = NULL; 
 CustomerNode* g_servingList = NULL;
 BarberNode* g_barberList = NULL;
 
@@ -103,7 +107,6 @@ void LOGIC_HandleStartCustomerService(void){
             printf("[LOGIC ERROR]: All barbers are BUSY. Please wait until a barber finishes.\n");
             return;
         }
-
         /* If found an AVAILABLE barber*/
         /* Derive the front node (First Customer in the Queue) to serving linked-list*/
         CustomerNode* serving_node = g_customerQueue->front;
@@ -119,6 +122,7 @@ void LOGIC_HandleStartCustomerService(void){
             g_customerQueue->rear = NULL;
         }
 
+        /* Add this node to the head position of the servingList */
         serving_node->next = g_servingList;
         g_servingList = serving_node;
 
@@ -148,7 +152,6 @@ void LOGIC_HandleCustomerCheckout(Customer customer) {
         return;
     }
 
-
     /* Update new status for the assigned barber of this customer to be AVAILABLE */
     Barber barber;
     barber.id = current->data.assigned_barber_id;
@@ -164,7 +167,6 @@ void LOGIC_HandleCustomerCheckout(Customer customer) {
     }
     
     printf("[LOGIC SUCCESS] Checked out Customer %s, ID: %d.\n", customer.name, customer.id);
-
     free(current);
 }
 
@@ -214,7 +216,6 @@ void LOGIC_HandleRemoveBarber(Barber barber) {
 
     BarberNode* current = g_barberList;
     BarberNode* prev = NULL;
-
     // Head node deletion
     if (current != NULL && current->data.id == barber.id) {
         g_barberList = current->next;
@@ -223,7 +224,7 @@ void LOGIC_HandleRemoveBarber(Barber barber) {
         return;
     }
 
-    // Search
+    /* Search in the g_barberList singly linked list for the barber with give ID and Name */
     while (current != NULL && current->data.id != barber.id) {
         prev = current;
         current = current->next;

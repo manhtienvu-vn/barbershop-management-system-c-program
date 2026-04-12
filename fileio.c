@@ -263,6 +263,39 @@ void IO_ViewCheckoutHistory(){
     fclose(file);
 }
 
+void IO_UpdateAllBarberStatus(){
+    /* Method: Create a new file and copy all barber's info
+    from the barber_list.csv file, update status of the newly-updated barber*/
+    FILE* file;
+    if(g_barberList == NULL){
+        printf("[IO ERROR] Barber list is empty.\n");
+        return;
+    }
+
+    file = fopen("barber_list.csv", "w");
+    if(file == NULL){
+        printf("[IO ERROR]: Cannot open BARBER-LIST file. File is currently opened.\n");
+        return;
+    }
+    fprintf(file, "Barber ID, Barber Name, Status\n");
+
+    BarberNode *temp = g_barberList;
+
+    while(temp != NULL){
+
+        fprintf(file, "%d, %s, %d\n", temp->data.id, temp->data.name, (int)(temp->data.status));
+
+        temp = temp->next;
+
+        if(ferror(file)){
+            printf("[IO ERROR]: Error writing to BARBER-LIST file.\n");
+            fclose(file);
+            return;
+        }
+    }
+    fclose(file);
+}
+
 void IO_RefreshWaitingListFile(){
     FILE* file;
     file = fopen("waiting_list.csv", "w");

@@ -1,6 +1,5 @@
 #include "ui.h"
 
-
 /* Use these enum variables to switch between ui pages */
 UI_State g_state = MENU_PAGE, g_lastState = MENU_PAGE;
 UI_SubState g_subState = NO;
